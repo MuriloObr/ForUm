@@ -1,0 +1,66 @@
+name: "ForUm_BackEnd"
+
+services:
+  db:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    networks:
+      - app-tier
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: "12345"
+      POSTGRES_DB: mydata
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myuser -d mydata"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  webapp:
+    build:
+      context: .
+      target: runtime
+    ports:
+      - "8000:5001"
+    networks:
+      - app-tier
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./src:/app/src
+      - ./utils:/app/utils
+      - ./alembic:/app/alembic
+    command:
+      [
+        "uv",
+        "run",
+        "uvicorn",
+        "src.main:app",
+        "--reload",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+      ]
+
+  test:
+    build:
+      context: .
+      target: test
+    networks:
+      - app-tier
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles:
+      - test
+
+networks:
+  app-tier:
+    driver: bridge

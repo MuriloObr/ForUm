@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-28T00:00:00.000Z",
+  "title": "Design System: ForUm",
+  "extensions": {
+    "colorMeta": {
+      "background-surface": { "role": "primary", "displayName": "Background Surface", "canonical": "#1e293b", "tonalRamp": ["#0f172a", "#1e293b", "#334155", "#475569", "#64748b", "#94a3b8", "#cbd5e1", "#e2e8f0"] },
+      "background-card": { "role": "neutral", "displayName": "Background Card", "canonical": "#ffffff", "tonalRamp": ["#e5e5e5", "#ebebeb", "#f0f0f0", "#f5f5f5", "#fafafa", "#fcfcfc", "#fefefe", "#ffffff"] },
+      "text-primary": { "role": "neutral", "displayName": "Text Primary", "canonical": "#18181b", "tonalRamp": ["#09090b", "#18181b", "#27272a", "#3f3f46", "#52525b", "#71717a", "#a1a1aa", "#d4d4d8"] },
+      "color-success": { "role": "primary", "displayName": "Success Green", "canonical": "#10b981", "tonalRamp": ["#064e3b", "#047857", "#059669", "#10b981", "#34d399", "#6ee7b7", "#a7f3d0", "#d1fae5"] },
+      "color-open": { "role": "primary", "displayName": "Open Purple", "canonical": "#9333ea", "tonalRamp": ["#4c1d95", "#5b21b6", "#6d28d9", "#7c3aed", "#8b5cf6", "#a78bfa", "#c4b5fd", "#ddd6fe"] },
+      "color-action": { "role": "primary", "displayName": "Action Blue", "canonical": "#3b82f6", "tonalRamp": ["#1e3a5f", "#1d4ed8", "#2563eb", "#3b82f6", "#60a5fa", "#93c5fd", "#bfdbfe", "#dbeafe"] },
+      "color-danger": { "role": "primary", "displayName": "Danger Red", "canonical": "#dc2626", "tonalRamp": ["#7f1d1d", "#991b1b", "#b91c1c", "#dc2626", "#ef4444", "#f87171", "#fca5a5", "#fecaca"] },
+      "color-engagement": { "role": "primary", "displayName": "Engagement Amber", "canonical": "#f59e0b", "tonalRamp": ["#78350f", "#92400e", "#a16207", "#d97706", "#f59e0b", "#fbbf24", "#fde68a", "#fef3c7"] },
+      "color-like": { "role": "primary", "displayName": "Like Rose", "canonical": "#f43f5e", "tonalRamp": ["#881337", "#9f1239", "#be123c", "#e11d48", "#f43f5e", "#fb7185", "#fda4af", "#ffe4e6"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Brand wordmark in the header. Used only for the site identity." },
+      "headline": { "displayName": "Headline", "purpose": "Page-level headings like the profile username." },
+      "title": { "displayName": "Title", "purpose": "Post titles, modal labels, section headings." },
+      "body": { "displayName": "Body", "purpose": "Post content, comment text, form labels, navigation. Default reading size." },
+      "label": { "displayName": "Label", "purpose": "Button text, status badges, metadata (dates, usernames)." }
+    },
+    "shadows": [
+      { "name": "card-rest", "value": "0 4px 6px -1px rgba(2,6,23,0.8), 0 2px 4px -2px rgba(2,6,23,0.8)", "purpose": "Default card elevation — soft, present, unobtrusive." },
+      { "name": "card-hover", "value": "0 20px 25px -5px rgba(2,6,23,0.7), 0 8px 10px -6px rgba(2,6,23,0.7)", "purpose": "Hover elevation — pronounced lift, explicitly cued." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Default easing for state transitions (hover, focus)." },
+      { "name": "duration-standard", "value": "200ms", "purpose": "Standard state transition duration." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" },
+      { "name": "2xl", "value": "1536px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Post Card",
+      "kind": "card",
+      "refersTo": "card-post",
+      "description": "Forum post card in the feed. Displays title, content preview, and engagement footer.",
+      "html": "<a class=\"ds-card-post\" href=\"/username/1\"><div class=\"ds-card-post-header\"><h2 class=\"ds-card-post-title\">Post Title</h2><span class=\"ds-badge ds-badge-open\">Open <svg width=\"18\" height=\"18\" viewBox=\"0 0 256 256\"><path d=\"M216 56H40a16 16 0 0 0-16 16v112a16 16 0 0 0 16 16h176a16 16 0 0 0 16-16V72a16 16 0 0 0-16-16Z\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"24\"/><polyline points=\"216 72 128 144 40 72\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"24\"/></svg></span></div><p class=\"ds-card-post-content\">Post content truncated to two lines...</p><div class=\"ds-card-post-footer\"><span class=\"ds-metric ds-metric-ratio\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 256 256\"><circle cx=\"128\" cy=\"128\" r=\"96\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"24\"/><polyline points=\"48 128 88 128 96 88\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"24\"/><polyline points=\"208 128 168 128 160 168\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"24\"/></svg></span><span class=\"ds-metric ds-metric-views\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 256 256\"><line x1=\"128\" y1=\"40\" x2=\"128\" y2=\"216\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"24\"/><polyline points=\"56 80 128 40 200 80\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"24\"/><polyline points=\"56 176 128 216 200 176\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"24\"/></svg></span><span class=\"ds-metric ds-metric-likes\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 256 256\"><path d=\"M128 216S40 160 40 100a44 44 0 0 1 80-28 44 44 0 0 1 80 28c0 60-72 116-72 116Z\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"24\"/></svg></span><span class=\"ds-tag\">nickname</span><span class=\"ds-date\">Tue Jul 28 2026</span></div></a>",
+      "css": ".ds-card-post { display: flex; flex-direction: column; gap: 16px; width: 75%; margin: 0 auto; padding: 20px; background: #ffffff; color: #18181b; border-radius: 6px; box-shadow: 0 4px 6px -1px rgba(2,6,23,0.8), 0 2px 4px -2px rgba(2,6,23,0.8); transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1); text-decoration: none; } .ds-card-post:hover { box-shadow: 0 20px 25px -5px rgba(2,6,23,0.7), 0 8px 10px -6px rgba(2,6,23,0.7); cursor: pointer; } .ds-card-post-header { display: flex; align-items: center; margin-top: 4px; } .ds-card-post-title { font-size: 1.25rem; font-weight: 600; margin: 0; } .ds-card-post:hover .ds-card-post-title { text-decoration: underline; text-decoration-thickness: 2px; } .ds-badge { display: inline-flex; align-items: center; gap: 8px; padding: 4px; border-radius: 6px; color: #ffffff; font-weight: 700; font-size: 0.875rem; margin-left: auto; } .ds-badge-open { background: #9333ea; } .ds-badge-closed { background: #10b981; } .ds-card-post-content { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin: 0; font-size: 1rem; line-height: 1.5; } .ds-card-post-footer { margin-top: auto; display: flex; justify-content: space-between; align-items: center; } .ds-metric { display: inline-flex; align-items: center; gap: 4px; margin-right: 16px; } .ds-metric-ratio { color: #f59e0b; } .ds-metric-views { color: #3b82f6; } .ds-metric-likes { color: #f43f5e; } .ds-tag { font-size: 0.875rem; margin-right: 16px; } .ds-date { font-size: 0.875rem; color: #3f3f46; }"
+    },
+    {
+      "name": "Primary Button (Add / Compose)",
+      "kind": "button",
+      "refersTo": "button-success",
+      "description": "Sticky floating button for creating new posts or comments. Positioned bottom-right of the feed.",
+      "html": "<button class=\"ds-btn-primary\">+ Post</button>",
+      "css": ".ds-btn-primary { position: sticky; bottom: 32px; float: right; padding: 8px 16px; background: #10b981; color: #ffffff; font-weight: 700; font-size: 1.125rem; border: none; border-radius: 6px; cursor: pointer; transition: filter 200ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-primary:hover { filter: brightness(0.9); } .ds-btn-primary:focus-visible { outline: 2px solid #18181b; outline-offset: 2px; }"
+    },
+    {
+      "name": "Login Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Login button in the header — left half of a paired button group.",
+      "html": "<button class=\"ds-btn-login\">Logar</button>",
+      "css": ".ds-btn-login { display: inline-flex; align-items: center; padding: 4px 8px; background: #3b82f6; color: #ffffff; font-weight: 700; font-size: 1.25rem; border: 2px solid #09090b; border-right-width: 1px; border-radius: 8px 0 0 8px; cursor: pointer; transition: filter 200ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-login:hover { filter: brightness(0.9); } .ds-btn-login:focus-visible { outline: 2px solid #18181b; outline-offset: 2px; }"
+    },
+    {
+      "name": "Register Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Register button in the header — right half of a paired button group.",
+      "html": "<button class=\"ds-btn-register\">Registrar</button>",
+      "css": ".ds-btn-register { display: inline-flex; align-items: center; padding: 4px 8px; background: #f97316; color: #ffffff; font-weight: 700; font-size: 1.25rem; border: 2px solid #09090b; border-left-width: 1px; border-radius: 0 8px 8px 0; cursor: pointer; transition: filter 200ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-register:hover { filter: brightness(0.9); } .ds-btn-register:focus-visible { outline: 2px solid #18181b; outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Input (Underline)",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Form and modal text input with underline-only style. Used for all text fields.",
+      "html": "<label class=\"ds-input-label\">Field<svg width=\"14\" height=\"14\" viewBox=\"0 0 256 256\"><polyline points=\"144 48 232 48 232 136\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"24\"/><polyline points=\"112 208 24 208 24 120\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"24\"/></svg><input class=\"ds-input-field\" type=\"text\" placeholder=\"\"/></label>",
+      "css": ".ds-input-label { display: flex; flex-direction: column; color: #18181b; font-size: 1.5rem; font-weight: 700; } .ds-input-label svg { display: inline; vertical-align: middle; } .ds-input-field { width: 100%; padding: 0 8px; background: transparent; border: none; border-bottom: 2px solid #09090b; font-size: 1.5rem; line-height: 2.5; font-weight: 400; color: #18181b; outline: none; } .ds-input-field:focus-visible { border-bottom-color: #3b82f6; }"
+    },
+    {
+      "name": "Header Navigation Link",
+      "kind": "nav",
+      "refersTo": "button-outline",
+      "description": "Top navigation link with underline-scale hover animation. Used in the site header.",
+      "html": "<a class=\"ds-nav-link\" href=\"/\">Home</a>",
+      "css": ".ds-nav-link { position: relative; display: inline-block; padding: 4px 8px; color: #18181b; font-size: 1.25rem; text-decoration: none; font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif; } .ds-nav-link::after { content: ''; position: absolute; left: 0; right: 0; top: 4px; height: 2px; width: 100%; background: #18181b; transform: scaleX(0); transform-origin: left; transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-nav-link::before { content: ''; position: absolute; left: 0; right: 0; bottom: 4px; height: 2px; width: 100%; background: #18181b; transform: scaleX(0); transform-origin: right; transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-nav-link:hover::after { transform: scaleX(1); } .ds-nav-link:hover::before { transform: scaleX(1); } .ds-nav-link:focus-visible { outline: 2px solid #18181b; outline-offset: 4px; }"
+    },
+    {
+      "name": "Status Badge (Open)",
+      "kind": "chip",
+      "refersTo": "button-outline",
+      "description": "Post status badge indicating the post is open for comments.",
+      "html": "<span class=\"ds-badge ds-badge-open\">Open <svg width=\"18\" height=\"18\" viewBox=\"0 0 256 256\"><polyline points=\"216 72 104 184 40 120\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"24\"/></svg></span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; gap: 8px; padding: 4px; border-radius: 6px; color: #ffffff; font-weight: 700; font-size: 0.875rem; } .ds-badge-open { background: #9333ea; } .ds-badge svg { width: 18px; height: 18px; }"
+    },
+    {
+      "name": "Status Badge (Closed)",
+      "kind": "chip",
+      "refersTo": "button-outline",
+      "description": "Post status badge indicating the post is closed to new comments.",
+      "html": "<span class=\"ds-badge ds-badge-closed\">Closed <svg width=\"18\" height=\"18\" viewBox=\"0 0 256 256\"><line x1=\"200\" y1=\"56\" x2=\"56\" y2=\"200\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"24\"/><line x1=\"200\" y1=\"200\" x2=\"56\" y2=\"56\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"24\"/></svg></span>",
+      "css": ".ds-badge-closed { background: #10b981; }"
+    },
+    {
+      "name": "Modal Dialog",
+      "kind": "card",
+      "refersTo": "card-post",
+      "description": "Compose modal for creating new posts and comments. Native dialog element with overlay.",
+      "html": "<dialog class=\"ds-modal\" open><div class=\"ds-modal-inner\"><label class=\"ds-input-label\">Titulo<svg width=\"14\" height=\"14\" viewBox=\"0 0 256 256\"><polyline points=\"144 48 232 48 232 136\"/><polyline points=\"112 208 24 208 24 120\"/></svg><input class=\"ds-input-field\" type=\"text\"/></label><label class=\"ds-input-label\">Conteudo<svg width=\"14\" height=\"14\" viewBox=\"0 0 256 256\"><polyline points=\"144 48 232 48 232 136\"/><polyline points=\"112 208 24 208 24 120\"/></svg><textarea class=\"ds-input-field ds-textarea\" rows=\"10\"></textarea></label><span class=\"ds-modal-status\"></span><button class=\"ds-btn-primary\">Postar</button></div></dialog>",
+      "css": ".ds-modal { width: 33.333%; border: none; border-radius: 6px; padding: 0; background: transparent; } .ds-modal::backdrop { background: rgba(15, 23, 42, 0.8); } .ds-modal-inner { display: flex; flex-direction: column; gap: 20px; padding: 32px; border-radius: 6px; background: #ffffff; } .ds-textarea { line-height: 2; resize: vertical; } .ds-modal-status { height: 20px; color: #b91c1c; font-size: 1rem; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Conversation Table",
+    "overview": "ForUm's design is built around the feeling of a well-worn table where people gather to share ideas. The interface is clean and purposeful — spacious, high-contrast, and deliberately quiet so the conversation itself fills the room. Cards sit on a slate surface like paper scattered across a tabletop, gently lifted to suggest they can be picked up and engaged with. Every element either serves reading, writing, or navigating the discussion; chrome exists only to make those actions feel tactile and dependable.\n\nThe palette stays neutral (slate backgrounds, white cards, zinc text) so that the status badges, interactive buttons, and user-generated markdown content become the color moments. This is not a brand that needs to shout — it's a table that welcomes anyone to sit down and write.",
+    "keyCharacteristics": [
+      "Neutral canvas with deliberate color accents for functional feedback",
+      "Cards always gently lifted; hover deepens the elevation",
+      "Tactile, bold interactive states — buttons feel clickable, fields feel editable",
+      "High contrast between surface zones (slate feed / white cards)",
+      "Spacious internal rhythms (16\u201320px padding on containers)",
+      "Underlined navigation links with a scale-in animation on hover"
+    ],
+    "rules": [
+      { "name": "The One-Color-Rule", "body": "A single accent color is used per functional zone. Status badges get their own color (green/purple); action buttons get blue/orange; engagement metrics get amber/rose. They never blend into a single palette gradient — each color carries distinct meaning.", "section": "colors" },
+      { "name": "The One-Family Rule", "body": "Every text element on screen uses the same font family stack. Hierarchy comes from weight, size, and spacing — never from a font swap.", "section": "typography" },
+      { "name": "The Lifted-At-Rest Rule", "body": "Cards always carry a shadow. The baseline elevation is not zero — content surfaces that can be interacted with are always visually lifted from the background.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use shadow-md as the minimum card elevation. Cards must feel lifted from the slate surface.",
+      "Do reserve color for functional meaning. Green = resolved, Purple = open, Blue = action, Orange = register, Red = danger.",
+      "Do use the underline-scale animation for navigation links — it's the system's signature micro-interaction.",
+      "Do keep content cards white on the slate-800 feed background for maximum figure-ground clarity.",
+      "Do use brightness-90 for button hover states — it's the consistent, predictable feedback pattern."
+    ],
+    "donts": [
+      "Don't add shadows to buttons. Button state is communicated through background color and brightness, not elevation.",
+      "Don't use rounded corners larger than 8px — the system is defined by subtle (rounded-md) curvature.",
+      "Don't mix input styles. All text inputs use the underline (border-b-2) pattern — no bordered boxes.",
+      "Don't introduce a secondary font family — Inter serves all roles via weight and size contrast.",
+      "Don't place accent colors on backgrounds — the slate feed + white card pattern is the invariant surface relationship."
+    ]
+  }
+}

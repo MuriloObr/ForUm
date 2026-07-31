@@ -1,0 +1,11 @@
+{
+  "id": "4b1cb3f1",
+  "operation": "accept",
+  "variantId": "3",
+  "result": {
+    "handled": true,
+    "file": "src/components/Header.tsx",
+    "carbonize": false
+  },
+  "completedAt": "2026-07-29T03:11:29.231Z"
+}

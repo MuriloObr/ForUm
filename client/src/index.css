@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #fafafa;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+.markdown {
+  @apply text-xl mt-2
+}
+.markdown p {
+  @apply whitespace-normal
+}
+.markdown h1 {
+  @apply text-3xl
+}
+.markdown h2 {
+  @apply text-2xl
+}
+.markdown h3 {
+  @apply text-xl
+}
+.markdown h4 {
+  @apply text-lg
+}
+.markdown h5 {
+  @apply text-sm
+}
+.markdown h6 {
+  @apply text-xs
+}
+.markdown a {
+  @apply text-blue-400 underline
+}
+.markdown ul {
+  @apply list-disc ml-6 flex flex-col
+}
+.markdown li {
+  @apply h-fit
+}
+.markdown code {
+  @apply rounded-md overflow-hidden
+}
+.markdown img {
+  @apply max-w-80
+}

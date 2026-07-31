@@ -1,0 +1,54 @@
+{
+  "id": "d16e064b",
+  "phase": "completed",
+  "pageUrl": "/",
+  "sourceFile": "src/components/Header.tsx",
+  "previewFile": null,
+  "previewMode": null,
+  "expectedVariants": 3,
+  "arrivedVariants": 3,
+  "visibleVariant": 3,
+  "paramValues": {},
+  "pendingEventSeq": null,
+  "pendingEvent": null,
+  "deliveryLease": null,
+  "checkpointRevision": 10,
+  "browserCheckpointRevision": 10,
+  "publicationCheckpointRevision": 0,
+  "activeOwner": "a59d5de3",
+  "sourceMarkers": {},
+  "fallbackMode": null,
+  "generationPhase": "generation_ready",
+  "generationCompletedAt": 1785294310957,
+  "generationTimings": {
+    "picked_up": {
+      "at": 1785294172748,
+      "durationMs": null
+    },
+    "scaffolding": {
+      "at": 1785294172749,
+      "durationMs": null
+    },
+    "source_ready": {
+      "at": 1785294173044,
+      "durationMs": 286.3094990000827
+    },
+    "generation_ready": {
+      "at": 1785294173046,
+      "durationMs": null
+    }
+  },
+  "variantPlan": null,
+  "generationCanceled": true,
+  "generationCanceledAt": 1785294310842,
+  "cancelReason": "accept",
+  "annotationArtifacts": [],
+  "diagnostics": [
+    {
+      "error": "carbonize_cleanup_required",
+      "file": "src/components/Header.tsx",
+      "message": "Accepted variant still has carbonize markers that must be folded into source CSS."
+    }
+  ],
+  "updatedAt": "2026-07-29T03:06:21.193Z"
+}
