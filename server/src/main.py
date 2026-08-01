@@ -1,8 +1,10 @@
 import jwt
 from os import getenv
+from pathlib import Path
 from typing import Annotated, Union
 from fastapi import FastAPI, Cookie, Depends, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from src.comment_actions import create_new_comment, get_all_comments_from_post, like_comment, rm_like_comment
 from src.post_actions import choose_answer, close_or_open_post, create_new_post, delete_post, get_all_posts, get_all_posts_from_user, get_post_by_id, like_post, rm_like_post, view_post
 from src.user_actions import create_new_user, get_user_by_id, login_with_user_or_email
@@ -27,6 +29,9 @@ app.add_middleware(
 
 secret_key = getenv("JWT_SECRET_KEY")
 
+STATIC_DIR = Path(getenv("STATIC_DIR", "client/dist"))
+
+
 def token_validation(uid: Union[str, None] = Cookie(None)):
     if not uid:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token is missing")
@@ -36,10 +41,6 @@ def token_validation(uid: Union[str, None] = Cookie(None)):
       return UIDToken.model_validate(uid_token)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Error: {e}")
-
-@app.get("/")
-async def read_root():
-    return {"Hello": "World"}
 
 
 @app.get("/api/logged", response_model=LoggedResponse)
@@ -210,3 +211,21 @@ def login(user: UserPayload, response: Response):
 def logout(uid_token: Annotated[UIDToken, Depends(token_validation)], response: Response):
     response.set_cookie(key="uid", expires=0)
     return {"message": f"User:{uid_token.user_id} logged out"}
+
+
+# --- SPA fallback (must be last) ---
+
+@app.get("/{path:path}")
+async def serve_spa(path: str):
+    if path.startswith("api"):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
+
+    if STATIC_DIR.is_dir():
+        file = STATIC_DIR / path
+        if file.is_file():
+            return FileResponse(file)
+        index = STATIC_DIR / "index.html"
+        if index.is_file():
+            return FileResponse(index)
+
+    return {"Hello": "World"}

@@ -1,0 +1,3 @@
+# Local dev topology: Postgres + API in Docker, Vite on the host
+
+For local development, PostgreSQL and the FastAPI server run in Docker (`docker compose up db webapp`) while Vite runs on the host and proxies nothing — the SPA calls the API directly at `http://localhost:8000`. We chose containerized Postgres+API because both are slow/heavy to install natively and the compose stack starts fast; Vite stays on the host because its hot module replacement is the daily dev loop and is perfectly reliable in the OS. The trade-off accepted: containers restart between edits of `pyproject.toml`/models are on Docker, and the compose file overrides `DATABASE_URL` to the `db` service hostname so the same `.env` works for host runs.

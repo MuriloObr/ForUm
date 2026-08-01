@@ -1,0 +1,3 @@
+# API client config: cross-origin in dev, same-origin in prod
+
+The client reaches the API two different ways by design. In dev, `VITE_API_URL` points at `http://localhost:8000` and FastAPI allows the Vite origin via `CORS_ORIGINS` — this keeps the SPA and API as independent processes with direct, debuggable traffic. In production, `VITE_API_URL=/api` is same-origin because FastAPI serves both the built SPA and the API. A unified relative `/api` path through the Vite proxy was considered, but the current split was kept because it already works and keeps the option of pointing the client at any API URL without touching the proxy.

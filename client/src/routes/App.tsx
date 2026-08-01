@@ -1,16 +1,16 @@
-import { useContext, useRef, useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
-import { SearchContext } from '../context/SearchContext.tsx'
+import { useContext, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { SearchContext } from "../context/SearchContext.tsx";
 import {
   useGetAllPostsApiPostsGet,
   useCreateNewPostApiPostsCreatePost,
-} from '../api/generated/endpoints'
-import { Post } from '../components/Post.tsx'
-import { Loading } from '../components/Loading'
-import { Error } from '../components/Error'
-import { AddButton } from '../components/ui/AddButton'
-import { Modal } from '../components/Modal'
-import { LoadingSubmit } from '../components/LoadingSubmit.tsx'
+} from "../api/generated/endpoints";
+import { Post } from "../components/Post.tsx";
+import { Loading } from "../components/Loading";
+import { Error } from "../components/Error";
+import { AddButton } from "../components/ui/AddButton";
+import { Modal } from "../components/Modal";
+import { LoadingSubmit } from "../components/LoadingSubmit.tsx";
 
 export function App() {
   const {
@@ -23,45 +23,45 @@ export function App() {
       retry: 5,
       staleTime: 30 * 60 * 1000,
     },
-  })
+  });
 
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
-  const { search } = useContext(SearchContext)
+  const { search } = useContext(SearchContext);
 
-  const modalRef = useRef<HTMLDialogElement>(null)
-  const inputTitleRef = useRef<HTMLInputElement>(null)
-  const inputTextareaRef = useRef<HTMLTextAreaElement>(null)
+  const modalRef = useRef<HTMLDialogElement>(null);
+  const inputTitleRef = useRef<HTMLInputElement>(null);
+  const inputTextareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const [postStatus, setPostStatus] = useState<string>('')
+  const [postStatus, setPostStatus] = useState<string>("");
 
   const { mutate, isLoading: mutateLoading } =
     useCreateNewPostApiPostsCreatePost({
       mutation: {
         onSuccess: () => {
-          modalRef.current?.close()
-          queryClient.invalidateQueries({ queryKey: ['posts'] })
+          modalRef.current?.close();
+          queryClient.invalidateQueries({ queryKey: ["posts"] });
         },
         onError: (error) => {
           if (error.response?.status === 401) {
-            setPostStatus('Você precisa estar logado para postar!')
+            setPostStatus("Você precisa estar logado para postar!");
           }
         },
       },
-    })
+    });
 
   const filteredPosts =
     search.length > 0
       ? data?.filter(({ title }) =>
           title.toLowerCase().includes(search.toLowerCase()),
         )
-      : []
+      : [];
 
   if (dataLoading) {
-    return <Loading />
+    return <Loading />;
   }
   if (isError) {
-    return <Error error={error} />
+    return <Error error={error} />;
   }
 
   return (
@@ -79,20 +79,20 @@ export function App() {
                     nickname={user.nickname}
                   />
                 </Post.Root>
-              )
+              );
             },
           )
-        ) : data === undefined ? (
+        ) : data === undefined || data === "" ? (
           <div>No posts to see...</div>
         ) : (
           data.map(({ id, title, content, user, is_closed, created_at }) => {
             return (
               <Post.Root username={user.username} postID={id} key={id}>
                 <Post.Header closed={is_closed}>{title}</Post.Header>
-                <Post.Content>{content.replaceAll('#', '')}</Post.Content>
+                <Post.Content>{content.replaceAll("#", "")}</Post.Content>
                 <Post.Footer createdAt={created_at} nickname={user.nickname} />
               </Post.Root>
-            )
+            );
           })
         )}
         <AddButton
@@ -107,8 +107,8 @@ export function App() {
           onSubmit={() =>
             mutate({
               data: {
-                title: inputTitleRef.current?.value ?? '',
-                content: inputTextareaRef.current?.value ?? '',
+                title: inputTitleRef.current?.value ?? "",
+                content: inputTextareaRef.current?.value ?? "",
               },
             })
           }
@@ -119,5 +119,5 @@ export function App() {
         </Modal.Root>
       </ul>
     </main>
-  )
+  );
 }

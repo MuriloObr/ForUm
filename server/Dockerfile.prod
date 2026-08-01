@@ -1,0 +1,51 @@
+# ---------------------------------------------------------------------------
+# Stage 1: build client statics
+# ---------------------------------------------------------------------------
+FROM node:20-bookworm-slim AS frontend
+
+WORKDIR /app/client
+COPY client/package.json client/pnpm-lock.yaml ./
+RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN pnpm install --frozen-lockfile
+COPY client/ ./
+RUN pnpm build
+
+# ---------------------------------------------------------------------------
+# Stage 2: build server dependencies
+# ---------------------------------------------------------------------------
+FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim AS backend
+
+WORKDIR /app
+
+COPY server/pyproject.toml server/uv.lock server/README.md ./
+RUN uv sync --frozen --no-install-project
+
+COPY server/src/ src/
+COPY server/utils/ utils/
+COPY server/alembic/ alembic/
+COPY server/alembic.ini ./
+
+RUN uv sync --frozen
+
+# ---------------------------------------------------------------------------
+# Stage 3: production image — server + statics
+# ---------------------------------------------------------------------------
+FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim AS runtime
+
+WORKDIR /app
+
+COPY --from=backend /app/.venv /app/.venv
+ENV PATH="/app/.venv/bin:$PATH"
+
+COPY server/src/ src/
+COPY server/utils/ utils/
+COPY server/alembic/ alembic/
+COPY server/alembic.ini ./
+COPY server/entrypoint.sh ./
+COPY --from=frontend /app/client/dist ./client/dist
+
+RUN chmod +x entrypoint.sh
+
+EXPOSE 8000
+
+ENTRYPOINT ["./entrypoint.sh"]

@@ -1,0 +1,3 @@
+# Production: single combined image serving the SPA with an index.html fallback
+
+Production ships as one multi-stage Docker image (`server/Dockerfile.prod`): a Node stage compiles the client into `client/dist`, a Python stage installs server deps, and the runtime image serves both the API (`/api/*`) and the built SPA on `:8000`. FastAPI returns real files and falls back to `index.html` for every non-`/api` path (`src/main.py`), so React Router deep links work on refresh. This replaces the previous split deployment where the frontend was served independently on Vercel (now removed). One artifact, one version to track, and dev and prod behavior match.
