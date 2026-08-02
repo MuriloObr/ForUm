@@ -2,25 +2,22 @@ from sqlmodel import Session, select
 from src.db.models.user import User
 from src.db.models.post import Post
 from src.db.models.comment import Comment
-from src.user_actions import _get_user_data
+from src.serializers import serialize_comment
 from utils.api_types import NewComment
 from utils.error_decorators import errorHandler
+from utils.errors import ErrorCode, ForUmError
 
 
 @errorHandler("get")
-def get_all_comments_from_post(session: Session, id):
+def get_all_comments_from_post(session: Session, id, currentUser=None):
+    post = session.get(Post, id)
+
+    if post is None:
+        raise ForUmError(404, ErrorCode.POST_NOT_FOUND, "Post not found")
+
     data = session.exec(select(Comment).where(Comment.post_id == id)).all()
 
-    if not data:
-        return False
-
-    jsonData = []
-    for comment in data:
-        jsonComment = comment.model_dump()
-        jsonComment["user"] = _get_user_data(session, jsonComment["user_id"])
-        jsonData.append(jsonComment)
-
-    return jsonData
+    return [serialize_comment(session, comment, currentUser) for comment in data]
 
 
 @errorHandler("post")
@@ -37,7 +34,7 @@ def create_new_comment(session: Session, comment: NewComment, currentUser):
     session.add(data)
     session.flush()
 
-    return data.model_dump()
+    return serialize_comment(session, data, currentUser)
 
 
 @errorHandler("post")

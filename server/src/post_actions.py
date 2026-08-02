@@ -2,54 +2,39 @@ from sqlmodel import Session, select
 from src.db.models.user import User
 from src.db.models.post import Post
 from src.db.models.comment import Comment
-from src.user_actions import _get_user_data
+from src.serializers import serialize_post
 from utils.api_types import NewPost
 from utils.error_decorators import errorHandler
+from utils.errors import ErrorCode, ForUmError
 
 
 @errorHandler("get")
-def get_post_by_id(session: Session, id: int):
+def get_post_by_id(session: Session, id: int, currentUser=None):
     data = session.get(Post, id)
 
     if data is None:
-        return False
+        raise ForUmError(404, ErrorCode.POST_NOT_FOUND, "Post not found")
 
-    jsonData = data.model_dump()
-    jsonData["user"] = _get_user_data(session, jsonData["user_id"])
-
-    return jsonData
+    return serialize_post(session, data, currentUser)
 
 
 @errorHandler("get")
-def get_all_posts(session: Session):
+def get_all_posts(session: Session, currentUser=None):
     data = session.exec(select(Post)).all()
 
-    if not data:
-        return False
-
-    jsonData = []
-    for post in data:
-        jsonPost = post.model_dump()
-        jsonPost["user"] = _get_user_data(session, jsonPost["user_id"])
-        jsonData.append(jsonPost)
-
-    return jsonData
+    return [serialize_post(session, post, currentUser) for post in data]
 
 
 @errorHandler("get")
-def get_all_posts_from_user(session: Session, id):
+def get_all_posts_from_user(session: Session, id, currentUser=None):
+    user = session.get(User, id)
+
+    if user is None:
+        raise ForUmError(404, ErrorCode.USER_NOT_FOUND, "User not found")
+
     data = session.exec(select(Post).where(Post.user_id == id)).all()
 
-    if not data:
-        return False
-
-    jsonData = []
-    for post in data:
-        jsonPost = post.model_dump()
-        jsonPost["user"] = _get_user_data(session, jsonPost["user_id"])
-        jsonData.append(jsonPost)
-
-    return jsonData
+    return [serialize_post(session, post, currentUser) for post in data]
 
 
 @errorHandler("post")
@@ -69,10 +54,7 @@ def create_new_post(session: Session, post: NewPost, currentUser):
     session.add(data)
     session.flush()
 
-    jsonData = data.model_dump()
-    jsonData["user"] = _get_user_data(session, jsonData["user_id"])
-
-    return jsonData
+    return serialize_post(session, data, currentUser)
 
 
 @errorHandler("post")

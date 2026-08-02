@@ -55,6 +55,9 @@ class PostResponse(BaseModel):
     updated_at: datetime
     user_id: int
     user: UserResponse
+    like_count: int
+    view_count: int
+    is_liked: bool
 
 class CommentResponse(BaseModel):
     id: int
@@ -64,6 +67,8 @@ class CommentResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     user: UserResponse | None = None
+    like_count: int
+    is_liked: bool
 
 class MessageResponse(BaseModel):
     message: str

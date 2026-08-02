@@ -127,7 +127,8 @@ class TestProfile:
         )
         client.cookies.set("uid", token)
         response = client.get("/api/profile")
-        assert response.status_code == 500
+        assert response.status_code == 404
+        assert response.json()["code"] == ErrorCode.USER_NOT_FOUND
 
 
 class TestLogout:

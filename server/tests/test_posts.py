@@ -1,6 +1,10 @@
 import pytest
 import json
 
+from fastapi.testclient import TestClient
+from src.main import app
+from utils.errors import ErrorCode
+
 
 class TestPostCRUD:
     def test_create_post(self, logged_in_client):
@@ -43,6 +47,71 @@ class TestPostCRUD:
         titles = {p["title"] for p in data}
         assert "Post A" in titles
         assert "Post B" in titles
+
+
+class TestPostReadEndpoints:
+    def test_empty_posts_list_returns_empty_array(self, client):
+        response = client.get("/api/posts")
+        assert response.status_code == 200
+        assert response.json() == []
+
+    def test_user_with_no_posts_returns_empty_array(self, client, test_engine):
+        from sqlmodel import Session, select
+        from src.db.models.user import User
+
+        client.post("/api/register", json={
+            "username": "lonewolf",
+            "nickname": "Lone",
+            "email": "lone@example.com",
+            "password": "pass123",
+        })
+        with Session(test_engine) as session:
+            user = session.exec(select(User).where(User.username == "lonewolf")).one()
+        response = client.get(f"/api/posts/user/{user.id}")
+        assert response.status_code == 200
+        assert response.json() == []
+
+    def test_missing_post_returns_not_found(self, logged_in_client):
+        response = logged_in_client.get("/api/posts/9999")
+        assert response.status_code == 404
+        assert response.json()["code"] == ErrorCode.POST_NOT_FOUND
+
+    def test_missing_user_returns_not_found(self, logged_in_client):
+        response = logged_in_client.get("/api/posts/user/9999")
+        assert response.status_code == 404
+        assert response.json()["code"] == ErrorCode.USER_NOT_FOUND
+
+    def test_get_user_returns_not_found_for_missing_user(self, logged_in_client):
+        response = logged_in_client.get("/api/user/9999")
+        assert response.status_code == 404
+        assert response.json()["code"] == ErrorCode.USER_NOT_FOUND
+
+    def test_post_includes_counts_and_is_liked(self, logged_in_client, sample_post):
+        post_id = sample_post["id"]
+        logged_in_client.post("/api/posts/like", json={
+            "post_id": post_id,
+        })
+        logged_in_client.post("/api/posts/view", json={
+            "post_id": post_id,
+        })
+        response = logged_in_client.get(f"/api/posts/{post_id}")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["like_count"] == 1
+        assert data["view_count"] == 1
+        assert data["is_liked"] is True
+
+    def test_logged_out_read_works_and_is_liked_false(self, logged_in_client, sample_post):
+        post_id = sample_post["id"]
+        logged_in_client.post("/api/posts/like", json={
+            "post_id": post_id,
+        })
+        with TestClient(app) as anon:
+            response = anon.get(f"/api/posts/{post_id}")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["like_count"] == 1
+        assert data["is_liked"] is False
 
 
 class TestPostLikes:

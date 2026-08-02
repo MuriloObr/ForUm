@@ -1,6 +1,8 @@
 import pytest
 import json
 
+from utils.errors import ErrorCode
+
 
 @pytest.fixture
 def sample_comment(logged_in_client, sample_post):
@@ -76,7 +78,13 @@ class TestCommentRetrieval:
 
     def test_get_comments_empty_post(self, logged_in_client, sample_post):
         response = logged_in_client.get(f"/api/comments/{sample_post['id']}")
-        assert response.status_code == 204
+        assert response.status_code == 200
+        assert response.json() == []
+
+    def test_get_comments_missing_post_returns_not_found(self, logged_in_client):
+        response = logged_in_client.get("/api/comments/9999")
+        assert response.status_code == 404
+        assert response.json()["code"] == ErrorCode.POST_NOT_FOUND
 
     def test_get_comments_includes_user(self, logged_in_client, sample_post):
         logged_in_client.post("/api/posts/comment", json={
@@ -88,6 +96,32 @@ class TestCommentRetrieval:
         assert "user" in comment
         assert comment["user"]["username"] == "testuser"
         assert "password" not in comment["user"]
+
+    def test_comment_includes_like_count_and_is_liked(self, logged_in_client, sample_comment):
+        comment_id = sample_comment["id"]
+        logged_in_client.post("/api/comments/like", json={
+            "comment_id": comment_id,
+        })
+        response = logged_in_client.get(f"/api/comments/{sample_comment['post_id']}")
+        assert response.status_code == 200
+        comment = next(c for c in response.json() if c["id"] == comment_id)
+        assert comment["like_count"] == 1
+        assert comment["is_liked"] is True
+
+    def test_comments_read_work_logged_out(self, logged_in_client, sample_comment):
+        from fastapi.testclient import TestClient
+        from src.main import app
+
+        comment_id = sample_comment["id"]
+        logged_in_client.post("/api/comments/like", json={
+            "comment_id": comment_id,
+        })
+        with TestClient(app) as anon:
+            response = anon.get(f"/api/comments/{sample_comment['post_id']}")
+        assert response.status_code == 200
+        comment = next(c for c in response.json() if c["id"] == comment_id)
+        assert comment["like_count"] == 1
+        assert comment["is_liked"] is False
 
 
 class TestCommentLikes:

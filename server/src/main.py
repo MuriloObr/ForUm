@@ -45,6 +45,16 @@ def token_validation(uid: Union[str, None] = Cookie(None)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Error: {e}")
 
 
+def optional_token_validation(uid: Union[str, None] = Cookie(None)) -> Union[UIDToken, None]:
+    if not uid:
+        return None
+
+    try:
+        return UIDToken.model_validate(jwt.decode(uid, secret_key, algorithms=["HS256"]))
+    except Exception:
+        return None
+
+
 @app.get("/api/logged", response_model=LoggedResponse)
 async def logged(uid_token: Annotated[UIDToken, Depends(token_validation)]):
     return {"res": f"User {uid_token.user_id} Logged In"}
@@ -52,60 +62,47 @@ async def logged(uid_token: Annotated[UIDToken, Depends(token_validation)]):
 
 @app.get("/api/profile", response_model=UserResponse)
 def profile(uid_token: Annotated[UIDToken, Depends(token_validation)]):
-    query = get_user_by_id(uid_token.user_id)
-    if query[0] is not None:
-        return query[0]
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=query[1])
+    return get_user_by_id(uid_token.user_id)[0]
 
 
 @app.get("/api/user/{userID}", response_model=UserResponse)
 async def getUserByID(userID: int):
-    query = get_user_by_id(userID)
-    if query[0] is not None:
-        if not query[0]:
-            return Response(status_code=status.HTTP_204_NO_CONTENT)
-        return query[0]
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=query[1])
+    return get_user_by_id(userID)[0]
 
 
 @app.get("/api/posts/{postID}", response_model=PostResponse)
-async def getPostByID(postID: int):
-    query = get_post_by_id(postID)
-    if query[0] is not None:
-        if not query[0]:
-            return Response(status_code=status.HTTP_204_NO_CONTENT)
-        return query[0]
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=query[1])
+async def getPostByID(
+    postID: int,
+    uid_token: Annotated[Union[UIDToken, None], Depends(optional_token_validation)],
+):
+    viewer = uid_token.user_id if uid_token else None
+    return get_post_by_id(postID, currentUser=viewer)[0]
 
 
 @app.get("/api/posts", response_model=list[PostResponse])
-def getAllPosts():
-    query = get_all_posts()
-    if query[0] is not None:
-        if not query[0]:
-            return Response(status_code=status.HTTP_204_NO_CONTENT)
-        return query[0]
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=query[1])
+def getAllPosts(
+    uid_token: Annotated[Union[UIDToken, None], Depends(optional_token_validation)],
+):
+    viewer = uid_token.user_id if uid_token else None
+    return get_all_posts(currentUser=viewer)[0]
 
 
 @app.get("/api/posts/user/{userID}", response_model=list[PostResponse])
-def getAllPostsFromUser(userID: int):
-    query = get_all_posts_from_user(userID)
-    if query[0] is not None:
-        if not query[0]:
-            return Response(status_code=status.HTTP_204_NO_CONTENT)
-        return query[0]
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=query[1])
+def getAllPostsFromUser(
+    userID: int,
+    uid_token: Annotated[Union[UIDToken, None], Depends(optional_token_validation)],
+):
+    viewer = uid_token.user_id if uid_token else None
+    return get_all_posts_from_user(userID, currentUser=viewer)[0]
 
 
 @app.get("/api/comments/{postID}", response_model=list[CommentResponse])
-def getAllCommentsFromPost(postID: int):
-    query = get_all_comments_from_post(postID)
-    if query[0] is not None:
-        if not query[0]:
-            return Response(status_code=status.HTTP_204_NO_CONTENT)
-        return query[0]
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=query[1])
+def getAllCommentsFromPost(
+    postID: int,
+    uid_token: Annotated[Union[UIDToken, None], Depends(optional_token_validation)],
+):
+    viewer = uid_token.user_id if uid_token else None
+    return get_all_comments_from_post(postID, currentUser=viewer)[0]
 
 
 @app.post("/api/posts/create", response_model=PostResponse)

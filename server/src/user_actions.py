@@ -3,6 +3,7 @@ from src.db.models.user import User
 from src.db.engine import engine
 from utils.api_types import NewUser
 from utils.error_decorators import errorHandler
+from utils.errors import ErrorCode, ForUmError
 import os
 import bcrypt
 import jwt
@@ -26,7 +27,15 @@ def _get_user_data(session: Session, id: int):
 
 @errorHandler("get")
 def get_user_by_id(session: Session, id: int):
-    return _get_user_data(session, id)
+    user = session.get(User, id)
+
+    if user is None:
+        raise ForUmError(404, ErrorCode.USER_NOT_FOUND, "User not found")
+
+    jsonData = user.model_dump()
+    jsonData.pop("password")
+
+    return jsonData
 
 
 @errorHandler("post")
