@@ -18,6 +18,7 @@ export function App() {
     isError,
     data,
     error,
+    refetch,
   } = useGetAllPostsApiPostsGet({
     query: {
       retry: 5,
@@ -61,7 +62,7 @@ export function App() {
     return <Loading />
   }
   if (isError) {
-    return <Error error={error} />
+    return <Error error={error} onRetry={refetch} />
   }
 
   return (

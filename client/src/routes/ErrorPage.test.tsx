@@ -15,8 +15,20 @@ vi.mock('react-router-dom', async (importOriginal) => {
   }
 })
 
+vi.mock('../api/generated/endpoints', () => ({
+  useLoggedApiLoggedGet: () => ({ data: undefined }),
+}))
+
+function renderErrorPage() {
+  return render(
+    <MemoryRouter>
+      <ErrorPage />
+    </MemoryRouter>,
+  )
+}
+
 describe('ErrorPage', () => {
-  it('renders the 404 route error response', () => {
+  it('renders the 404 route error response with a home action', () => {
     mocks.routeError = {
       status: 404,
       statusText: 'Not Found',
@@ -24,18 +36,29 @@ describe('ErrorPage', () => {
       data: undefined,
     }
 
-    render(
-      <MemoryRouter>
-        <ErrorPage />
-      </MemoryRouter>,
-    )
+    renderErrorPage()
 
-    expect(screen.getByText('Oops!')).toBeInTheDocument()
-    expect(screen.getByText('404')).toBeInTheDocument()
-    expect(screen.getByText('Not Found')).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', {
+        level: 1,
+        name: 'Não encontramos o que você estava procurando.',
+      }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: 'Voltar ao início' }),
+    ).toHaveAttribute('href', '/')
   })
 
-  it('renders the message from a route error response', () => {
+  it('keeps the app chrome alive on error', () => {
+    mocks.routeError = new Error('everything broke')
+
+    renderErrorPage()
+
+    expect(screen.getByText('ForUm')).toBeInTheDocument()
+    expect(screen.getByText('Posts')).toBeInTheDocument()
+  })
+
+  it('renders a friendly 500 route error response', () => {
     mocks.routeError = {
       status: 500,
       statusText: 'Internal Server Error',
@@ -43,54 +66,40 @@ describe('ErrorPage', () => {
       data: { message: 'boom' },
     }
 
-    render(
-      <MemoryRouter>
-        <ErrorPage />
-      </MemoryRouter>,
-    )
+    renderErrorPage()
 
-    expect(screen.getByText('500')).toBeInTheDocument()
-    expect(screen.getByText('boom')).toBeInTheDocument()
+    expect(screen.getByText('Algo deu errado no servidor.')).toBeInTheDocument()
+    expect(screen.getByText('Erro 500 · boom')).toBeInTheDocument()
   })
 
   it('renders a generic fallback for a thrown Error', () => {
     mocks.routeError = new Error('everything broke')
 
-    render(
-      <MemoryRouter>
-        <ErrorPage />
-      </MemoryRouter>,
-    )
+    renderErrorPage()
 
-    expect(screen.getByText('Oops! Algo deu errado.')).toBeInTheDocument()
-    expect(screen.getByText('everything broke')).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Algo deu errado.' }),
+    ).toBeInTheDocument()
   })
 
   it('renders a generic fallback for unknown error values', () => {
     mocks.routeError = 'mystery'
 
-    render(
-      <MemoryRouter>
-        <ErrorPage />
-      </MemoryRouter>,
-    )
+    renderErrorPage()
 
-    expect(screen.getByText('Oops! Algo deu errado.')).toBeInTheDocument()
-    expect(screen.getByText('Unexpected error')).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Algo deu errado.' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: 'Voltar ao início' }),
+    ).toHaveAttribute('href', '/')
   })
 
-  it('links back to the home page', () => {
-    mocks.routeError = new Error('anything')
+  it('moves focus to the heading on mount', () => {
+    mocks.routeError = new Error('everything broke')
 
-    render(
-      <MemoryRouter>
-        <ErrorPage />
-      </MemoryRouter>,
-    )
+    renderErrorPage()
 
-    expect(screen.getByText('Go Back to Home Page')).toHaveAttribute(
-      'href',
-      '/',
-    )
+    expect(screen.getByRole('heading', { level: 1 })).toHaveFocus()
   })
 })

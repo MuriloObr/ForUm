@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 import { Error as ErrorFallback } from './Error'
 
@@ -23,35 +24,56 @@ function makeAxiosError(status?: number): AxiosError {
   )
 }
 
+function renderError(error: unknown, onRetry?: () => void) {
+  return render(
+    <MemoryRouter>
+      <ErrorFallback error={error} onRetry={onRetry} />
+    </MemoryRouter>,
+  )
+}
+
 describe('Error', () => {
-  it('renders a friendly 401 message', () => {
-    render(<ErrorFallback error={makeAxiosError(401)} />)
+  it('renders an alert region with a heading', () => {
+    renderError(makeAxiosError(404))
+
+    expect(screen.getByRole('alert')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2 })).toBeInTheDocument()
+  })
+
+  it('renders a friendly 401 message with a login action', () => {
+    renderError(makeAxiosError(401))
 
     expect(
       screen.getByText('Você precisa estar logado para acessar esta página!'),
     ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Entrar' })).toHaveAttribute(
+      'href',
+      '/login',
+    )
   })
 
-  it('renders a friendly 404 message', () => {
-    render(<ErrorFallback error={makeAxiosError(404)} />)
+  it('renders a friendly 404 message with a home action', () => {
+    renderError(makeAxiosError(404))
 
     expect(
       screen.getByText('Não encontramos o que você estava procurando.'),
     ).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: 'Voltar ao início' }),
+    ).toHaveAttribute('href', '/')
   })
 
   it('renders a friendly 500 message', () => {
-    render(<ErrorFallback error={makeAxiosError(500)} />)
+    renderError(makeAxiosError(500))
 
+    expect(screen.getByText('Algo deu errado no servidor.')).toBeInTheDocument()
     expect(
-      screen.getByText(
-        'Algo deu errado no servidor. Tente novamente em instantes.',
-      ),
+      screen.getByText('Tente novamente em instantes.'),
     ).toBeInTheDocument()
   })
 
   it('renders a friendly unknown status message', () => {
-    render(<ErrorFallback error={makeAxiosError(418)} />)
+    renderError(makeAxiosError(418))
 
     expect(
       screen.getByText('Algo deu errado ao carregar os dados.'),
@@ -59,7 +81,7 @@ describe('Error', () => {
   })
 
   it('renders a connection message for network errors', () => {
-    render(<ErrorFallback error={makeAxiosError()} />)
+    renderError(makeAxiosError())
 
     expect(
       screen.getByText('Não foi possível conectar ao servidor.'),
@@ -67,7 +89,7 @@ describe('Error', () => {
   })
 
   it('renders a generic fallback for a plain Error', () => {
-    render(<ErrorFallback error={new Error('boom')} />)
+    renderError(new Error('boom'))
 
     expect(
       screen.getByText('Algo deu errado ao carregar os dados.'),
@@ -75,10 +97,35 @@ describe('Error', () => {
   })
 
   it('renders a generic fallback for unknown error values', () => {
-    render(<ErrorFallback error={'weird'} />)
+    renderError('weird')
 
     expect(
       screen.getByText('Algo deu errado ao carregar os dados.'),
+    ).toBeInTheDocument()
+  })
+
+  it('calls onRetry when retrying', () => {
+    const onRetry = vi.fn()
+    renderError(makeAxiosError(500), onRetry)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }))
+
+    expect(onRetry).toHaveBeenCalled()
+  })
+
+  it('offers a home escape when retry is available', () => {
+    renderError(makeAxiosError(500), vi.fn())
+
+    expect(
+      screen.getByRole('link', { name: 'Voltar ao início' }),
+    ).toHaveAttribute('href', '/')
+  })
+
+  it('shows the raw error detail in development', () => {
+    renderError(makeAxiosError(500))
+
+    expect(
+      screen.getByText('Erro 500 · Request failed with status code'),
     ).toBeInTheDocument()
   })
 })

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 import { SearchProvider } from '../context/SearchContext'
@@ -65,11 +66,13 @@ const samplePost: PostResponse = {
 function renderApp() {
   const queryClient = new QueryClient()
   return render(
-    <QueryClientProvider client={queryClient}>
-      <SearchProvider>
-        <App />
-      </SearchProvider>
-    </QueryClientProvider>,
+    <MemoryRouter>
+      <QueryClientProvider client={queryClient}>
+        <SearchProvider>
+          <App />
+        </SearchProvider>
+      </QueryClientProvider>
+    </MemoryRouter>,
   )
 }
 
@@ -111,10 +114,9 @@ describe('App', () => {
 
     renderApp()
 
+    expect(screen.getByText('Algo deu errado no servidor.')).toBeInTheDocument()
     expect(
-      screen.getByText(
-        'Algo deu errado no servidor. Tente novamente em instantes.',
-      ),
+      screen.getByText('Tente novamente em instantes.'),
     ).toBeInTheDocument()
   })
 

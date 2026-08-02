@@ -29,6 +29,7 @@ export function PostPage() {
     isError,
     data: post,
     error,
+    refetch,
   } = useGetPostByIDApiPostsPostIDGet(parsedPostID, {
     query: {
       staleTime: 15 * 60 * 1000,
@@ -129,7 +130,7 @@ export function PostPage() {
     return <Loading />
   }
   if (isError) {
-    return <Error error={error} />
+    return <Error error={error} onRetry={refetch} />
   }
 
   return (
