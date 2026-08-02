@@ -15,7 +15,7 @@ class Comment(SQLModel, table=True):
 
     id: int | None = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="users.id", nullable=False)
-    post_id: int = Field(foreign_key="posts.id", nullable=False)
+    post_id: int = Field(foreign_key="posts.id", nullable=False, ondelete="CASCADE")
     content: str = Field(nullable=False)
     likes: list["User"] = Relationship(
         link_model=CommentLikeLink, back_populates="comment_likes"

@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, Field
 
 
 class UIDToken(BaseModel):
@@ -10,25 +10,25 @@ class PostRef(BaseModel):
     post_id: int
 
 class NewPost(BaseModel):
-    title: str
-    content: str
+    title: str = Field(min_length=3, max_length=120)
+    content: str = Field(min_length=1, max_length=10000)
 
 class CommentRef(BaseModel):
     comment_id: int
 
 class NewComment(BaseModel):
     post_id: int
-    content: str
+    content: str = Field(min_length=1, max_length=10000)
 
 class BestCommentRef(BaseModel):
     post_id: int
     comment_id: int
 
 class NewUser(BaseModel):
-    username: str
-    nickname: str
-    email: str
-    password: str
+    username: str = Field(pattern=r"^[a-zA-Z0-9_]+$", min_length=3, max_length=30)
+    nickname: str = Field(min_length=1, max_length=30)
+    email: EmailStr
+    password: str = Field(min_length=6, max_length=72)
 
 class UserPayload(BaseModel):
     user: str
@@ -55,6 +55,9 @@ class PostResponse(BaseModel):
     updated_at: datetime
     user_id: int
     user: UserResponse
+    like_count: int
+    view_count: int
+    is_liked: bool
 
 class CommentResponse(BaseModel):
     id: int
@@ -64,9 +67,5 @@ class CommentResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     user: UserResponse | None = None
-
-class MessageResponse(BaseModel):
-    message: str
-
-class LoggedResponse(BaseModel):
-    res: str
+    like_count: int
+    is_liked: bool

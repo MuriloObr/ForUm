@@ -25,7 +25,10 @@ class Post(SQLModel, table=True):
     )
     is_closed: bool = Field(default=False, nullable=False)
     answer_id: int | None = Field(default=None)
-    comments: list["Comment"] = Relationship(back_populates="post")
+    comments: list["Comment"] = Relationship(
+        back_populates="post",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"},
+    )
     user: "User" = Relationship(back_populates="posts")
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc)

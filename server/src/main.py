@@ -8,13 +8,15 @@ from fastapi.responses import FileResponse
 from src.comment_actions import create_new_comment, get_all_comments_from_post, like_comment, rm_like_comment
 from src.post_actions import choose_answer, close_or_open_post, create_new_post, delete_post, get_all_posts, get_all_posts_from_user, get_post_by_id, like_post, rm_like_post, view_post
 from src.user_actions import create_new_user, get_user_by_id, login_with_user_or_email
+from utils.errors import ErrorCode, ForUmError, register_error_handlers
 from utils.api_types import (
-    BestCommentRef, CommentRef, CommentResponse, LoggedResponse,
-    MessageResponse, NewComment, NewPost, NewUser, PostRef,
+    BestCommentRef, CommentRef, CommentResponse,
+    NewComment, NewPost, NewUser, PostRef,
     PostResponse, UIDToken, UserPayload, UserResponse,
 )
 
 app = FastAPI()
+register_error_handlers(app)
 
 cors_raw = getenv("CORS_ORIGINS", "")
 origins = [o.strip() for o in cors_raw.split(",") if o.strip()]
@@ -34,183 +36,145 @@ STATIC_DIR = Path(getenv("STATIC_DIR", "client/dist"))
 
 def token_validation(uid: Union[str, None] = Cookie(None)):
     if not uid:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token is missing")
+        raise ForUmError(401, ErrorCode.UNAUTHENTICATED, "Not authenticated")
 
     try:
       uid_token = jwt.decode(uid, secret_key, algorithms=["HS256"])
       return UIDToken.model_validate(uid_token)
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Error: {e}")
+    except Exception:
+        raise ForUmError(401, ErrorCode.UNAUTHENTICATED, "Not authenticated")
 
 
-@app.get("/api/logged", response_model=LoggedResponse)
+def optional_token_validation(uid: Union[str, None] = Cookie(None)) -> Union[UIDToken, None]:
+    if not uid:
+        return None
+
+    try:
+        return UIDToken.model_validate(jwt.decode(uid, secret_key, algorithms=["HS256"]))
+    except Exception:
+        return None
+
+
+@app.get("/api/logged", response_model=UserResponse)
 async def logged(uid_token: Annotated[UIDToken, Depends(token_validation)]):
-    return {"res": f"User {uid_token.user_id} Logged In"}
-
-
-@app.get("/api/profile", response_model=UserResponse)
-def profile(uid_token: Annotated[UIDToken, Depends(token_validation)]):
-    query = get_user_by_id(uid_token.user_id)
-    if query[0] is not None:
-        return query[0]
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=query[1])
+    return get_user_by_id(uid_token.user_id)[0]
 
 
 @app.get("/api/user/{userID}", response_model=UserResponse)
 async def getUserByID(userID: int):
-    query = get_user_by_id(userID)
-    if query[0] is not None:
-        if not query[0]:
-            return Response(status_code=status.HTTP_204_NO_CONTENT)
-        return query[0]
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=query[1])
+    return get_user_by_id(userID)[0]
 
 
 @app.get("/api/posts/{postID}", response_model=PostResponse)
-async def getPostByID(postID: int):
-    query = get_post_by_id(postID)
-    if query[0] is not None:
-        if not query[0]:
-            return Response(status_code=status.HTTP_204_NO_CONTENT)
-        return query[0]
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=query[1])
+async def getPostByID(
+    postID: int,
+    uid_token: Annotated[Union[UIDToken, None], Depends(optional_token_validation)],
+):
+    viewer = uid_token.user_id if uid_token else None
+    return get_post_by_id(postID, currentUser=viewer)[0]
 
 
 @app.get("/api/posts", response_model=list[PostResponse])
-def getAllPosts():
-    query = get_all_posts()
-    if query[0] is not None:
-        if not query[0]:
-            return Response(status_code=status.HTTP_204_NO_CONTENT)
-        return query[0]
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=query[1])
+def getAllPosts(
+    uid_token: Annotated[Union[UIDToken, None], Depends(optional_token_validation)],
+):
+    viewer = uid_token.user_id if uid_token else None
+    return get_all_posts(currentUser=viewer)[0]
 
 
 @app.get("/api/posts/user/{userID}", response_model=list[PostResponse])
-def getAllPostsFromUser(userID: int):
-    query = get_all_posts_from_user(userID)
-    if query[0] is not None:
-        if not query[0]:
-            return Response(status_code=status.HTTP_204_NO_CONTENT)
-        return query[0]
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=query[1])
+def getAllPostsFromUser(
+    userID: int,
+    uid_token: Annotated[Union[UIDToken, None], Depends(optional_token_validation)],
+):
+    viewer = uid_token.user_id if uid_token else None
+    return get_all_posts_from_user(userID, currentUser=viewer)[0]
 
 
 @app.get("/api/comments/{postID}", response_model=list[CommentResponse])
-def getAllCommentsFromPost(postID: int):
-    query = get_all_comments_from_post(postID)
-    if query[0] is not None:
-        if not query[0]:
-            return Response(status_code=status.HTTP_204_NO_CONTENT)
-        return query[0]
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=query[1])
+def getAllCommentsFromPost(
+    postID: int,
+    uid_token: Annotated[Union[UIDToken, None], Depends(optional_token_validation)],
+):
+    viewer = uid_token.user_id if uid_token else None
+    return get_all_comments_from_post(postID, currentUser=viewer)[0]
 
 
-@app.post("/api/posts/create", response_model=PostResponse)
+@app.post("/api/posts/create", response_model=PostResponse, status_code=status.HTTP_201_CREATED)
 def createNewPost(uid_token: Annotated[UIDToken, Depends(token_validation)], new_post: NewPost):
-    task = create_new_post(post=new_post, currentUser=uid_token.user_id)
-    if task[0]:
-        return task[0]
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=task[1])
+    return create_new_post(post=new_post, currentUser=uid_token.user_id)[0]
 
 
-@app.delete("/api/posts/delete/{postID}", response_model=MessageResponse)
+@app.delete("/api/posts/delete/{postID}")
 def deletePost(uid_token: Annotated[UIDToken, Depends(token_validation)], postID: int):
-    task = delete_post(post_id=postID, currentUser=uid_token.user_id)
-    if task[0]:
-        return {"message": task[0]}
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=task[1])
+    delete_post(post_id=postID, currentUser=uid_token.user_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@app.post("/api/posts/comment", response_model=CommentResponse)
+@app.post("/api/posts/comment", response_model=CommentResponse, status_code=status.HTTP_201_CREATED)
 def createNewComment(uid_token: Annotated[UIDToken, Depends(token_validation)], new_comment: NewComment):
-    task = create_new_comment(comment=new_comment, currentUser=uid_token.user_id)
-    if task[0]:
-        return task[0]
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=task[1])
+    return create_new_comment(comment=new_comment, currentUser=uid_token.user_id)[0]
 
 
-@app.post("/api/posts/like", response_model=MessageResponse)
+@app.post("/api/posts/like")
 def likePost(uid_token: Annotated[UIDToken, Depends(token_validation)], post_ref: PostRef):
-    task = like_post(post_id=post_ref.post_id, currentUser=uid_token.user_id)
-    if task[0]:
-        return {"message": task[0]}
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=task[1])
+    like_post(post_id=post_ref.post_id, currentUser=uid_token.user_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@app.delete("/api/posts/like", response_model=MessageResponse)
+@app.delete("/api/posts/like")
 def unlikePost(uid_token: Annotated[UIDToken, Depends(token_validation)], post_ref: PostRef):
-    task = rm_like_post(post_id=post_ref.post_id, currentUser=uid_token.user_id)
-    if task[0]:
-        return {"message": task[0]}
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=task[1])
+    rm_like_post(post_id=post_ref.post_id, currentUser=uid_token.user_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@app.post("/api/comments/like", response_model=MessageResponse)
+@app.post("/api/comments/like")
 def likeComment(uid_token: Annotated[UIDToken, Depends(token_validation)], comment_ref: CommentRef):
-    task = like_comment(comment_id=comment_ref.comment_id, currentUser=uid_token.user_id)
-    if task[0]:
-        return {"message": task[0]}
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=task[1])
+    like_comment(comment_id=comment_ref.comment_id, currentUser=uid_token.user_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@app.delete("/api/comments/like", response_model=MessageResponse)
+@app.delete("/api/comments/like")
 def unlikeComment(uid_token: Annotated[UIDToken, Depends(token_validation)], comment_ref: CommentRef):
-    task = rm_like_comment(comment_id=comment_ref.comment_id, currentUser=uid_token.user_id)
-    if task[0]:
-        return {"message": task[0]}
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=task[1])
+    rm_like_comment(comment_id=comment_ref.comment_id, currentUser=uid_token.user_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@app.put("/api/comments/best", response_model=MessageResponse)
+@app.put("/api/comments/best", response_model=PostResponse)
 def bestComment(uid_token: Annotated[UIDToken, Depends(token_validation)], best_comment_ref: BestCommentRef):
-    task = choose_answer(
+    return choose_answer(
         post_id=best_comment_ref.post_id,
         comment_id=best_comment_ref.comment_id,
         currentUser=uid_token.user_id,
-    )
-    if task[0]:
-        return {"message": task[0]}
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=task[1])
+    )[0]
 
 
-@app.post("/api/posts/view", response_model=MessageResponse)
+@app.post("/api/posts/view")
 def viewPost(uid_token: Annotated[UIDToken, Depends(token_validation)], post_ref: PostRef):
-    task = view_post(post_id=post_ref.post_id, currentUser=uid_token.user_id)
-    if task[0]:
-        return {"message": task[0]}
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=task[1])
+    view_post(post_id=post_ref.post_id, currentUser=uid_token.user_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@app.put("/api/posts/closed", response_model=MessageResponse)
+@app.put("/api/posts/closed", response_model=PostResponse)
 def closeOpenPost(uid_token: Annotated[UIDToken, Depends(token_validation)], post_ref: PostRef):
-    task = close_or_open_post(post_id=post_ref.post_id, currentUser=uid_token.user_id)
-    if task[0]:
-        return {"message": task[0]}
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=task[1])
+    return close_or_open_post(post_id=post_ref.post_id, currentUser=uid_token.user_id)[0]
 
 
-@app.post("/api/register", response_model=MessageResponse)
+@app.post("/api/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def createNewUser(new_user: NewUser):
     task = create_new_user(new_user)
-    if task[0]:
-        return {"message": task[0]}
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=task[1])
+    return task[0]
 
 
-@app.post("/api/login", response_model=MessageResponse)
+@app.post("/api/login", status_code=204)
 def login(user: UserPayload, response: Response):
-    task = login_with_user_or_email(user.user, user.password)
-    if task[0]:
-        response.set_cookie(key="uid", value=task[0], samesite="lax")
-        return {"message": "Cookies!"}
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=task[1])
+    token = login_with_user_or_email(user.user, user.password)
+    response.set_cookie(key="uid", value=token, samesite="lax")
 
 
-@app.post("/api/logout", response_model=MessageResponse)
+@app.post("/api/logout", status_code=204)
 def logout(uid_token: Annotated[UIDToken, Depends(token_validation)], response: Response):
     response.set_cookie(key="uid", expires=0)
-    return {"message": f"User:{uid_token.user_id} logged out"}
 
 
 # --- SPA fallback (must be last) ---

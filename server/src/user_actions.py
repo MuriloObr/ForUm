@@ -3,6 +3,7 @@ from src.db.models.user import User
 from src.db.engine import engine
 from utils.api_types import NewUser
 from utils.error_decorators import errorHandler
+from utils.errors import ErrorCode, ForUmError
 import os
 import bcrypt
 import jwt
@@ -26,37 +27,35 @@ def _get_user_data(session: Session, id: int):
 
 @errorHandler("get")
 def get_user_by_id(session: Session, id: int):
-    return _get_user_data(session, id)
+    user = session.get(User, id)
+
+    if user is None:
+        raise ForUmError(404, ErrorCode.USER_NOT_FOUND, "User not found")
+
+    jsonData = user.model_dump()
+    jsonData.pop("password")
+
+    return jsonData
 
 
 @errorHandler("post")
 def create_new_user(session: Session, user: NewUser):
-    pwd = f"{user.password}"
-
-    hashPassword = bcrypt.hashpw(
-        pwd.encode("utf-8"), bcrypt.gensalt())
-
-    if "@" in user.username:
-        raise Exception("'@' char is not allowed in username")
-
-    undefined = [
-        True for val in user.model_dump().values()
-        if val.strip() is None or val.strip() == ""
-    ]
-
-    if any(undefined):
-        return None
-
     hasUsername = session.exec(
         select(User).where(User.username == user.username)
     ).first()
+
+    if hasUsername is not None:
+        raise ForUmError(409, ErrorCode.USERNAME_TAKEN, "Username already taken")
 
     hasEmail = session.exec(
         select(User).where(User.email == user.email)
     ).first()
 
-    if hasUsername or hasEmail:
-        return None
+    if hasEmail is not None:
+        raise ForUmError(409, ErrorCode.EMAIL_TAKEN, "Email already taken")
+
+    hashPassword = bcrypt.hashpw(
+        user.password.encode("utf-8"), bcrypt.gensalt())
 
     data = User(
         username=user.username,
@@ -66,36 +65,34 @@ def create_new_user(session: Session, user: NewUser):
     )
 
     session.add(data)
+    session.flush()
 
-    return f"User: {data.username} Created"
+    jsonData = data.model_dump()
+    jsonData.pop("password")
+
+    return jsonData
 
 
-def login_with_user_or_email(user_email: str, password: str) -> list[None | str]:
+def login_with_user_or_email(user_email: str, password: str) -> str:
     with Session(engine) as session:
-        try:
-            if "@" in user_email:
-                user = session.exec(
-                    select(User).where(User.email == user_email)
-                ).first()
-            else:
-                user = session.exec(
-                    select(User).where(User.username == user_email)
-                ).first()
-
-            if user is None:
-                return [None, None]
-
-        except Exception as e:
-            session.rollback()
-            return [None, str(e)]
-
+        if "@" in user_email:
+            user = session.exec(
+                select(User).where(User.email == user_email)
+            ).first()
         else:
-            if bcrypt.checkpw(password.encode("utf-8"), user.password.encode("utf-8")):
-                token = jwt.encode({
-                    "user_id": user.id,
-                    "exp": date.datetime.now() + date.timedelta(hours=12)
-                }, secret_key, algorithm=jwt_algorithm)
+            user = session.exec(
+                select(User).where(User.username == user_email)
+            ).first()
 
-                return [token, None]
-            else:
-                return [None, None]
+        if user is None:
+            raise ForUmError(401, ErrorCode.INVALID_CREDENTIALS, "Invalid credentials")
+
+        if not bcrypt.checkpw(password.encode("utf-8"), user.password.encode("utf-8")):
+            raise ForUmError(401, ErrorCode.INVALID_CREDENTIALS, "Invalid credentials")
+
+        token = jwt.encode({
+            "user_id": user.id,
+            "exp": date.datetime.now() + date.timedelta(hours=12)
+        }, secret_key, algorithm=jwt_algorithm)
+
+        return token

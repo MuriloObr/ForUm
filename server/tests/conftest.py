@@ -7,6 +7,7 @@ os.environ["DATABASE_URL"] = "sqlite://"
 import pytest
 from sqlmodel import SQLModel, Session, create_engine
 from sqlmodel.pool import StaticPool
+from sqlalchemy import event
 
 from src.db.models.user import User
 from src.db.models.post import Post
@@ -24,6 +25,13 @@ def test_engine_fixture():
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
+
+    @event.listens_for(engine, "connect")
+    def _enable_sqlite_foreign_keys(dbapi_connection, connection_record):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
+
     SQLModel.metadata.create_all(engine)
     yield engine
     SQLModel.metadata.drop_all(engine)
@@ -51,7 +59,7 @@ def client_fixture(test_engine):
     from fastapi.testclient import TestClient
     from src.main import app
 
-    with TestClient(app) as c:
+    with TestClient(app, raise_server_exceptions=False) as c:
         yield c
 
 
@@ -63,7 +71,7 @@ def registered_user(client):
         "email": "test@example.com",
         "password": "securepass123",
     })
-    assert response.status_code == 200
+    assert response.status_code == 201
     return response.json()
 
 
@@ -73,7 +81,7 @@ def logged_in_client(client, registered_user):
         "user": "testuser",
         "password": "securepass123",
     })
-    assert response.status_code == 200
+    assert response.status_code == 204
     return client
 
 
@@ -83,5 +91,5 @@ def sample_post(logged_in_client):
         "title": "Test Post",
         "content": "Post content here",
     })
-    assert response.status_code == 200
+    assert response.status_code == 201
     return response.json()

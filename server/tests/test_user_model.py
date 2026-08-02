@@ -240,8 +240,16 @@ class TestUserLikesPost:
         assert len(user.post_likes) == 0
 
     def test_multiple_users_like_post(self, db_session):
+        author = User(
+            username="popular_author", nickname="PA",
+            email="pa@example.com", password="pw",
+        )
+        db_session.add(author)
+        db_session.commit()
+        db_session.refresh(author)
+
         post = Post(
-            user_id=1, title="Popular",
+            user_id=author.id, title="Popular",
             content="Everyone likes this",
         )
         db_session.add(post)
@@ -350,8 +358,16 @@ class TestUserLikesComment:
         assert len(user.comment_likes) == 1
 
     def test_multiple_users_like_comment(self, db_session):
+        author = User(
+            username="op_author", nickname="OP",
+            email="op@example.com", password="pw",
+        )
+        db_session.add(author)
+        db_session.commit()
+        db_session.refresh(author)
+
         post = Post(
-            user_id=1, title="Post",
+            user_id=author.id, title="Post",
             content="Content",
         )
         db_session.add(post)
@@ -359,7 +375,7 @@ class TestUserLikesComment:
         db_session.refresh(post)
 
         comment = Comment(
-            user_id=1, post_id=post.id,
+            user_id=author.id, post_id=post.id,
             content="Brilliant insight",
         )
         db_session.add(comment)
