@@ -129,36 +129,28 @@ def createNewComment(uid_token: Annotated[UIDToken, Depends(token_validation)], 
     raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=task[1])
 
 
-@app.post("/api/posts/like", response_model=MessageResponse)
+@app.post("/api/posts/like")
 def likePost(uid_token: Annotated[UIDToken, Depends(token_validation)], post_ref: PostRef):
-    task = like_post(post_id=post_ref.post_id, currentUser=uid_token.user_id)
-    if task[0]:
-        return {"message": task[0]}
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=task[1])
+    like_post(post_id=post_ref.post_id, currentUser=uid_token.user_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@app.delete("/api/posts/like", response_model=MessageResponse)
+@app.delete("/api/posts/like")
 def unlikePost(uid_token: Annotated[UIDToken, Depends(token_validation)], post_ref: PostRef):
-    task = rm_like_post(post_id=post_ref.post_id, currentUser=uid_token.user_id)
-    if task[0]:
-        return {"message": task[0]}
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=task[1])
+    rm_like_post(post_id=post_ref.post_id, currentUser=uid_token.user_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@app.post("/api/comments/like", response_model=MessageResponse)
+@app.post("/api/comments/like")
 def likeComment(uid_token: Annotated[UIDToken, Depends(token_validation)], comment_ref: CommentRef):
-    task = like_comment(comment_id=comment_ref.comment_id, currentUser=uid_token.user_id)
-    if task[0]:
-        return {"message": task[0]}
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=task[1])
+    like_comment(comment_id=comment_ref.comment_id, currentUser=uid_token.user_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@app.delete("/api/comments/like", response_model=MessageResponse)
+@app.delete("/api/comments/like")
 def unlikeComment(uid_token: Annotated[UIDToken, Depends(token_validation)], comment_ref: CommentRef):
-    task = rm_like_comment(comment_id=comment_ref.comment_id, currentUser=uid_token.user_id)
-    if task[0]:
-        return {"message": task[0]}
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=task[1])
+    rm_like_comment(comment_id=comment_ref.comment_id, currentUser=uid_token.user_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @app.put("/api/comments/best", response_model=MessageResponse)
@@ -173,12 +165,10 @@ def bestComment(uid_token: Annotated[UIDToken, Depends(token_validation)], best_
     raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=task[1])
 
 
-@app.post("/api/posts/view", response_model=MessageResponse)
+@app.post("/api/posts/view")
 def viewPost(uid_token: Annotated[UIDToken, Depends(token_validation)], post_ref: PostRef):
-    task = view_post(post_id=post_ref.post_id, currentUser=uid_token.user_id)
-    if task[0]:
-        return {"message": task[0]}
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=task[1])
+    view_post(post_id=post_ref.post_id, currentUser=uid_token.user_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @app.put("/api/posts/closed", response_model=MessageResponse)

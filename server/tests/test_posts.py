@@ -119,18 +119,7 @@ class TestPostLikes:
         response = logged_in_client.post("/api/posts/like", json={
             "post_id": sample_post["id"],
         })
-        assert response.status_code == 200
-        assert "Liked" in response.json()["message"]
-
-    def test_unlike_post(self, logged_in_client, sample_post):
-        logged_in_client.post("/api/posts/like", json={
-            "post_id": sample_post["id"],
-        })
-        response = logged_in_client.request("DELETE", "/api/posts/like", json={
-            "post_id": sample_post["id"],
-        })
-        assert response.status_code == 200
-        assert "Like Removed" in response.json()["message"]
+        assert response.status_code == 204
 
     def test_duplicate_like(self, logged_in_client, sample_post):
         logged_in_client.post("/api/posts/like", json={
@@ -139,7 +128,60 @@ class TestPostLikes:
         response = logged_in_client.post("/api/posts/like", json={
             "post_id": sample_post["id"],
         })
-        assert response.status_code == 500
+        assert response.status_code == 409
+        assert response.json()["code"] == ErrorCode.POST_ALREADY_LIKED
+
+    def test_unlike_post(self, logged_in_client, sample_post):
+        logged_in_client.post("/api/posts/like", json={
+            "post_id": sample_post["id"],
+        })
+        response = logged_in_client.request("DELETE", "/api/posts/like", json={
+            "post_id": sample_post["id"],
+        })
+        assert response.status_code == 204
+
+    def test_unlike_without_like(self, logged_in_client, sample_post):
+        response = logged_in_client.request("DELETE", "/api/posts/like", json={
+            "post_id": sample_post["id"],
+        })
+        assert response.status_code == 409
+        assert response.json()["code"] == ErrorCode.POST_NOT_LIKED
+
+    def test_like_missing_post(self, logged_in_client):
+        response = logged_in_client.post("/api/posts/like", json={
+            "post_id": 9999,
+        })
+        assert response.status_code == 404
+        assert response.json()["code"] == ErrorCode.POST_NOT_FOUND
+
+    def test_unlike_missing_post(self, logged_in_client):
+        response = logged_in_client.request("DELETE", "/api/posts/like", json={
+            "post_id": 9999,
+        })
+        assert response.status_code == 404
+        assert response.json()["code"] == ErrorCode.POST_NOT_FOUND
+
+
+class TestPostView:
+    def test_view_is_idempotent(self, logged_in_client, sample_post):
+        post_id = sample_post["id"]
+        first = logged_in_client.post("/api/posts/view", json={
+            "post_id": post_id,
+        })
+        second = logged_in_client.post("/api/posts/view", json={
+            "post_id": post_id,
+        })
+        assert first.status_code == 204
+        assert second.status_code == 204
+        response = logged_in_client.get(f"/api/posts/{post_id}")
+        assert response.json()["view_count"] == 1
+
+    def test_view_missing_post(self, logged_in_client):
+        response = logged_in_client.post("/api/posts/view", json={
+            "post_id": 9999,
+        })
+        assert response.status_code == 404
+        assert response.json()["code"] == ErrorCode.POST_NOT_FOUND
 
 
 class TestPostAnswer:

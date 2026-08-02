@@ -42,16 +42,16 @@ def like_comment(session: Session, comment_id, currentUser):
     comment = session.get(Comment, comment_id)
     user = session.get(User, currentUser)
 
-    jsonComment = comment.model_dump()
-    jsonUser = user.model_dump()
+    if comment is None:
+        raise ForUmError(404, ErrorCode.COMMENT_NOT_FOUND, "Comment not found")
+    if user is None:
+        raise ForUmError(404, ErrorCode.USER_NOT_FOUND, "User not found")
 
     for like in comment.likes:
-        if like.id == jsonUser["id"]:
-            return False
+        if like.id == user.id:
+            raise ForUmError(409, ErrorCode.COMMENT_ALREADY_LIKED, "Comment already liked")
 
     comment.likes.append(user)
-
-    return f"Comment: {jsonComment['id']} Liked by User: {jsonUser['username']}"
 
 
 @errorHandler("post")
@@ -59,9 +59,12 @@ def rm_like_comment(session: Session, comment_id, currentUser):
     comment = session.get(Comment, comment_id)
     user = session.get(User, currentUser)
 
-    jsonComment = comment.model_dump()
-    jsonUser = user.model_dump()
+    if comment is None:
+        raise ForUmError(404, ErrorCode.COMMENT_NOT_FOUND, "Comment not found")
+    if user is None:
+        raise ForUmError(404, ErrorCode.USER_NOT_FOUND, "User not found")
 
-    comment.likes.remove(user)
-
-    return f"Comment: {jsonComment['id']} Like Removed by User: {jsonUser['username']}"
+    try:
+        comment.likes.remove(user)
+    except ValueError:
+        raise ForUmError(409, ErrorCode.COMMENT_NOT_LIKED, "Comment not liked")

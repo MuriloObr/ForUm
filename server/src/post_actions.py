@@ -75,16 +75,16 @@ def like_post(session: Session, post_id, currentUser):
     post = session.get(Post, post_id)
     user = session.get(User, currentUser)
 
-    jsonPost = post.model_dump()
-    jsonUser = user.model_dump()
+    if post is None:
+        raise ForUmError(404, ErrorCode.POST_NOT_FOUND, "Post not found")
+    if user is None:
+        raise ForUmError(404, ErrorCode.USER_NOT_FOUND, "User not found")
 
     for like in post.likes:
-        if like.id == jsonUser["id"]:
-            return False
+        if like.id == user.id:
+            raise ForUmError(409, ErrorCode.POST_ALREADY_LIKED, "Post already liked")
 
     post.likes.append(user)
-
-    return f"Post: {jsonPost['title']} Liked by User: {jsonUser['username']}"
 
 
 @errorHandler("post")
@@ -92,12 +92,15 @@ def rm_like_post(session: Session, post_id, currentUser):
     post = session.get(Post, post_id)
     user = session.get(User, currentUser)
 
-    jsonPost = post.model_dump()
-    jsonUser = user.model_dump()
+    if post is None:
+        raise ForUmError(404, ErrorCode.POST_NOT_FOUND, "Post not found")
+    if user is None:
+        raise ForUmError(404, ErrorCode.USER_NOT_FOUND, "User not found")
 
-    post.likes.remove(user)
-
-    return f"Post: {jsonPost['title']} Like Removed by User: {jsonUser['username']}"
+    try:
+        post.likes.remove(user)
+    except ValueError:
+        raise ForUmError(409, ErrorCode.POST_NOT_LIKED, "Post not liked")
 
 
 @errorHandler("post")
@@ -144,13 +147,13 @@ def view_post(session: Session, post_id, currentUser):
     post = session.get(Post, post_id)
     user = session.get(User, currentUser)
 
-    jsonPost = post.model_dump()
-    jsonUser = user.model_dump()
+    if post is None:
+        raise ForUmError(404, ErrorCode.POST_NOT_FOUND, "Post not found")
+    if user is None:
+        raise ForUmError(404, ErrorCode.USER_NOT_FOUND, "User not found")
 
     for view in post.views:
-        if view.id == jsonUser["id"]:
-            return False
+        if view.id == user.id:
+            return
 
     post.views.append(user)
-
-    return f"Post: {jsonPost['title']} Viewed by User: {jsonUser['username']}"

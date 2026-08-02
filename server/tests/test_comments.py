@@ -129,18 +129,7 @@ class TestCommentLikes:
         response = logged_in_client.post("/api/comments/like", json={
             "comment_id": sample_comment["id"],
         })
-        assert response.status_code == 200
-        assert "Liked" in response.json()["message"]
-
-    def test_unlike_comment(self, logged_in_client, sample_comment):
-        logged_in_client.post("/api/comments/like", json={
-            "comment_id": sample_comment["id"],
-        })
-        response = logged_in_client.request("DELETE", "/api/comments/like", json={
-            "comment_id": sample_comment["id"],
-        })
-        assert response.status_code == 200
-        assert "Like Removed" in response.json()["message"]
+        assert response.status_code == 204
 
     def test_duplicate_like_comment(self, logged_in_client, sample_comment):
         logged_in_client.post("/api/comments/like", json={
@@ -149,4 +138,35 @@ class TestCommentLikes:
         response = logged_in_client.post("/api/comments/like", json={
             "comment_id": sample_comment["id"],
         })
-        assert response.status_code == 500
+        assert response.status_code == 409
+        assert response.json()["code"] == ErrorCode.COMMENT_ALREADY_LIKED
+
+    def test_unlike_comment(self, logged_in_client, sample_comment):
+        logged_in_client.post("/api/comments/like", json={
+            "comment_id": sample_comment["id"],
+        })
+        response = logged_in_client.request("DELETE", "/api/comments/like", json={
+            "comment_id": sample_comment["id"],
+        })
+        assert response.status_code == 204
+
+    def test_unlike_comment_without_like(self, logged_in_client, sample_comment):
+        response = logged_in_client.request("DELETE", "/api/comments/like", json={
+            "comment_id": sample_comment["id"],
+        })
+        assert response.status_code == 409
+        assert response.json()["code"] == ErrorCode.COMMENT_NOT_LIKED
+
+    def test_like_missing_comment(self, logged_in_client):
+        response = logged_in_client.post("/api/comments/like", json={
+            "comment_id": 9999,
+        })
+        assert response.status_code == 404
+        assert response.json()["code"] == ErrorCode.COMMENT_NOT_FOUND
+
+    def test_unlike_missing_comment(self, logged_in_client):
+        response = logged_in_client.request("DELETE", "/api/comments/like", json={
+            "comment_id": 9999,
+        })
+        assert response.status_code == 404
+        assert response.json()["code"] == ErrorCode.COMMENT_NOT_FOUND
