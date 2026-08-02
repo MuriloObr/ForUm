@@ -71,7 +71,7 @@ def registered_user(client):
         "email": "test@example.com",
         "password": "securepass123",
     })
-    assert response.status_code == 200
+    assert response.status_code == 201
     return response.json()
 
 
@@ -81,7 +81,7 @@ def logged_in_client(client, registered_user):
         "user": "testuser",
         "password": "securepass123",
     })
-    assert response.status_code == 200
+    assert response.status_code == 204
     return client
 
 

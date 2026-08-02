@@ -8,10 +8,10 @@ from fastapi.responses import FileResponse
 from src.comment_actions import create_new_comment, get_all_comments_from_post, like_comment, rm_like_comment
 from src.post_actions import choose_answer, close_or_open_post, create_new_post, delete_post, get_all_posts, get_all_posts_from_user, get_post_by_id, like_post, rm_like_post, view_post
 from src.user_actions import create_new_user, get_user_by_id, login_with_user_or_email
-from utils.errors import register_error_handlers
+from utils.errors import ErrorCode, ForUmError, register_error_handlers
 from utils.api_types import (
-    BestCommentRef, CommentRef, CommentResponse, LoggedResponse,
-    MessageResponse, NewComment, NewPost, NewUser, PostRef,
+    BestCommentRef, CommentRef, CommentResponse,
+    NewComment, NewPost, NewUser, PostRef,
     PostResponse, UIDToken, UserPayload, UserResponse,
 )
 
@@ -36,13 +36,13 @@ STATIC_DIR = Path(getenv("STATIC_DIR", "client/dist"))
 
 def token_validation(uid: Union[str, None] = Cookie(None)):
     if not uid:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token is missing")
+        raise ForUmError(401, ErrorCode.UNAUTHENTICATED, "Not authenticated")
 
     try:
       uid_token = jwt.decode(uid, secret_key, algorithms=["HS256"])
       return UIDToken.model_validate(uid_token)
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Error: {e}")
+    except Exception:
+        raise ForUmError(401, ErrorCode.UNAUTHENTICATED, "Not authenticated")
 
 
 def optional_token_validation(uid: Union[str, None] = Cookie(None)) -> Union[UIDToken, None]:
@@ -55,13 +55,8 @@ def optional_token_validation(uid: Union[str, None] = Cookie(None)) -> Union[UID
         return None
 
 
-@app.get("/api/logged", response_model=LoggedResponse)
+@app.get("/api/logged", response_model=UserResponse)
 async def logged(uid_token: Annotated[UIDToken, Depends(token_validation)]):
-    return {"res": f"User {uid_token.user_id} Logged In"}
-
-
-@app.get("/api/profile", response_model=UserResponse)
-def profile(uid_token: Annotated[UIDToken, Depends(token_validation)]):
     return get_user_by_id(uid_token.user_id)[0]
 
 
@@ -165,27 +160,21 @@ def closeOpenPost(uid_token: Annotated[UIDToken, Depends(token_validation)], pos
     return close_or_open_post(post_id=post_ref.post_id, currentUser=uid_token.user_id)[0]
 
 
-@app.post("/api/register", response_model=MessageResponse)
+@app.post("/api/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def createNewUser(new_user: NewUser):
     task = create_new_user(new_user)
-    if task[0]:
-        return {"message": task[0]}
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=task[1])
+    return task[0]
 
 
-@app.post("/api/login", response_model=MessageResponse)
+@app.post("/api/login", status_code=204)
 def login(user: UserPayload, response: Response):
-    task = login_with_user_or_email(user.user, user.password)
-    if task[0]:
-        response.set_cookie(key="uid", value=task[0], samesite="lax")
-        return {"message": "Cookies!"}
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=task[1])
+    token = login_with_user_or_email(user.user, user.password)
+    response.set_cookie(key="uid", value=token, samesite="lax")
 
 
-@app.post("/api/logout", response_model=MessageResponse)
+@app.post("/api/logout", status_code=204)
 def logout(uid_token: Annotated[UIDToken, Depends(token_validation)], response: Response):
     response.set_cookie(key="uid", expires=0)
-    return {"message": f"User:{uid_token.user_id} logged out"}
 
 
 # --- SPA fallback (must be last) ---
