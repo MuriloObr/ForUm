@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { AxiosError } from 'axios'
 import { Form } from '../components/Form'
 import { useLoginApiLoginPost } from '../api/generated/endpoints'
 import { useNavigate } from 'react-router-dom'
@@ -19,9 +20,14 @@ export function Login() {
     mutation: {
       onSuccess: () => navigate('/profile'),
       onError: (error) => {
-        if (error.response?.status === 404) {
+        if (error instanceof AxiosError && error.response === undefined) {
           setRes({
-            message: 'Perfil não encontrado',
+            message: 'Não foi possível conectar ao servidor.',
+            color: 'text-red-500',
+          })
+        } else {
+          setRes({
+            message: 'Usuário ou senha inválidos.',
             color: 'text-red-500',
           })
         }

@@ -6,7 +6,7 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - app-tier
+      - app-tier-prod
     environment:
       POSTGRES_USER: myuser
       POSTGRES_PASSWORD: "12345"
@@ -24,7 +24,7 @@ services:
     ports:
       - "8000:8000"
     networks:
-      - app-tier
+      - app-tier-prod
     env_file:
       - .env
     environment:
@@ -34,5 +34,5 @@ services:
         condition: service_healthy
 
 networks:
-  app-tier:
+  app-tier-prod:
     driver: bridge

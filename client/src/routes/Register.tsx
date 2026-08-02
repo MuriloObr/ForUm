@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { AxiosError } from 'axios'
 import { useNavigate } from 'react-router-dom'
 import { useCreateNewUserApiRegisterPost } from '../api/generated/endpoints'
 import { Form } from '../components/Form'
@@ -19,9 +20,14 @@ export function Register() {
     mutation: {
       onSuccess: () => navigate('/login'),
       onError: (error) => {
-        if (error.response?.status === 409) {
+        if (error instanceof AxiosError && error.response === undefined) {
           setRes({
-            message: 'Algo deu errado',
+            message: 'Não foi possível conectar ao servidor.',
+            color: 'text-red-500',
+          })
+        } else {
+          setRes({
+            message: 'Algo deu errado. Usuário ou email já cadastrados.',
             color: 'text-red-500',
           })
         }

@@ -15,6 +15,7 @@ ForUm is a forum: a React SPA (`client/`) talking to a FastAPI backend (`server/
 make dev        # Postgres + FastAPI in Docker, Vite on host
 make down       # stop the Docker dev services
 make test       # server pytest (SQLite in-memory)
+make test-client # client vitest (jsdom)
 make build      # client tsc + vite build
 make prod       # build + run the combined production image
 make lint       # client eslint (zero warnings allowed)
@@ -84,11 +85,10 @@ Uses SQLite in-memory via `tests/conftest.py`; no Postgres required.
 pnpm dev              # Vite dev server on 0.0.0.0
 pnpm build            # tsc && vite build
 pnpm lint             # eslint --ext ts,tsx (zero warnings allowed)
+pnpm test             # vitest (jsdom), colocated *.test.tsx
 pnpm generate         # Generate API types and hooks from openapi.json
 pnpm storybook        # Storybook on port 6006
 ```
-
-No test runner is configured.
 
 ### Path aliases
 

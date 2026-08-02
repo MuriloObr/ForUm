@@ -13,6 +13,7 @@ ForUm client — a React SPA forum frontend. Single package (not a monorepo). Ba
 - Axios for HTTP
 - Radix UI (hover-card, popover), Phosphor Icons
 - Markdown rendering: `marked` + `dompurify` + `highlight.js`
+- Testing: Vitest + @testing-library/react (jsdom)
 - Storybook 8 (React-Vite)
 - Orval for API code generation from OpenAPI spec
 
@@ -22,13 +23,18 @@ ForUm client — a React SPA forum frontend. Single package (not a monorepo). Ba
 pnpm dev              # Vite dev server on 0.0.0.0
 pnpm build            # tsc && vite build
 pnpm lint             # eslint . --ext ts,tsx (zero warnings allowed)
+pnpm test             # vitest run (component tests, jsdom)
+pnpm test:watch       # vitest watch mode
 pnpm generate         # Generate API types and hooks from openapi.json
 pnpm generate:watch   # Watch mode for generation
 pnpm storybook        # Storybook on port 6006
 pnpm build-storybook
 ```
 
-No test runner is configured. There are no test scripts or test dependencies.
+Tests live colocated as `*.test.tsx` next to the source files. Vitest is
+configured in `vite.config.ts` (`jsdom` + `src/test/setup.ts`); the setup file
+loads `@testing-library/jest-dom` matchers and runs cleanup after each test.
+Tests use explicit imports from `vitest` (no globals).
 
 ## Path aliases
 
