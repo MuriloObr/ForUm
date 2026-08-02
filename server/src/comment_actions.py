@@ -25,6 +25,11 @@ def create_new_comment(session: Session, comment: NewComment, currentUser):
     user = session.get(User, currentUser)
     post = session.get(Post, comment.post_id)
 
+    if post is None:
+        raise ForUmError(404, ErrorCode.POST_NOT_FOUND, "Post not found")
+    if user is None:
+        raise ForUmError(404, ErrorCode.USER_NOT_FOUND, "User not found")
+
     data = Comment(
         content=comment.content,
         user=user,

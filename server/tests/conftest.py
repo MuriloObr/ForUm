@@ -83,5 +83,5 @@ def sample_post(logged_in_client):
         "title": "Test Post",
         "content": "Post content here",
     })
-    assert response.status_code == 200
+    assert response.status_code == 201
     return response.json()

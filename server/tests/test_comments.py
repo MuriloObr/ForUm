@@ -10,7 +10,7 @@ def sample_comment(logged_in_client, sample_post):
         "post_id": sample_post["id"],
         "content": "This is a comment",
     })
-    assert response.status_code == 200
+    assert response.status_code == 201
     return response.json()
 
 
@@ -20,12 +20,14 @@ class TestCommentCreation:
             "post_id": sample_post["id"],
             "content": "Great post!",
         })
-        assert response.status_code == 200
+        assert response.status_code == 201
         data = response.json()
         assert data["id"] is not None
         assert data["content"] == "Great post!"
         assert data["post_id"] == sample_post["id"]
         assert "user" in data or "user_id" in data
+        assert data["like_count"] == 0
+        assert data["is_liked"] is False
 
     def test_create_multiple_comments(self, logged_in_client, sample_post):
         for i in range(3):
@@ -33,7 +35,7 @@ class TestCommentCreation:
                 "post_id": sample_post["id"],
                 "content": f"Comment {i}",
             })
-            assert resp.status_code == 200
+            assert resp.status_code == 201
 
         response = logged_in_client.get(f"/api/comments/{sample_post['id']}")
         assert response.status_code == 200
@@ -54,7 +56,40 @@ class TestCommentCreation:
             "post_id": 9999,
             "content": "Bad post",
         })
-        assert response.status_code == 500
+        assert response.status_code == 404
+        assert response.json()["code"] == ErrorCode.POST_NOT_FOUND
+
+    def test_create_comment_by_missing_user(self, logged_in_client, sample_post):
+        import jwt as pyjwt
+        import os
+
+        token = pyjwt.encode(
+            {"user_id": 99999, "exp": 9999999999},
+            os.environ["JWT_SECRET_KEY"],
+            algorithm="HS256",
+        )
+        logged_in_client.cookies.set("uid", token)
+        response = logged_in_client.post("/api/posts/comment", json={
+            "post_id": sample_post["id"],
+            "content": "Ghost comment",
+        })
+        assert response.status_code == 404
+        assert response.json()["code"] == ErrorCode.USER_NOT_FOUND
+
+    def test_create_comment_empty_content(self, logged_in_client, sample_post):
+        response = logged_in_client.post("/api/posts/comment", json={
+            "post_id": sample_post["id"],
+            "content": "",
+        })
+        assert response.status_code == 422
+        assert "detail" in response.json()
+
+    def test_create_comment_content_too_long(self, logged_in_client, sample_post):
+        response = logged_in_client.post("/api/posts/comment", json={
+            "post_id": sample_post["id"],
+            "content": "x" * 10001,
+        })
+        assert response.status_code == 422
 
 
 class TestCommentRetrieval:

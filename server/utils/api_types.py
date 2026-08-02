@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class UIDToken(BaseModel):
@@ -10,15 +10,15 @@ class PostRef(BaseModel):
     post_id: int
 
 class NewPost(BaseModel):
-    title: str
-    content: str
+    title: str = Field(min_length=3, max_length=120)
+    content: str = Field(min_length=1, max_length=10000)
 
 class CommentRef(BaseModel):
     comment_id: int
 
 class NewComment(BaseModel):
     post_id: int
-    content: str
+    content: str = Field(min_length=1, max_length=10000)
 
 class BestCommentRef(BaseModel):
     post_id: int

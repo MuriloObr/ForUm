@@ -105,12 +105,9 @@ def getAllCommentsFromPost(
     return get_all_comments_from_post(postID, currentUser=viewer)[0]
 
 
-@app.post("/api/posts/create", response_model=PostResponse)
+@app.post("/api/posts/create", response_model=PostResponse, status_code=status.HTTP_201_CREATED)
 def createNewPost(uid_token: Annotated[UIDToken, Depends(token_validation)], new_post: NewPost):
-    task = create_new_post(post=new_post, currentUser=uid_token.user_id)
-    if task[0]:
-        return task[0]
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=task[1])
+    return create_new_post(post=new_post, currentUser=uid_token.user_id)[0]
 
 
 @app.delete("/api/posts/delete/{postID}", response_model=MessageResponse)
@@ -121,12 +118,9 @@ def deletePost(uid_token: Annotated[UIDToken, Depends(token_validation)], postID
     raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=task[1])
 
 
-@app.post("/api/posts/comment", response_model=CommentResponse)
+@app.post("/api/posts/comment", response_model=CommentResponse, status_code=status.HTTP_201_CREATED)
 def createNewComment(uid_token: Annotated[UIDToken, Depends(token_validation)], new_comment: NewComment):
-    task = create_new_comment(comment=new_comment, currentUser=uid_token.user_id)
-    if task[0]:
-        return task[0]
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=task[1])
+    return create_new_comment(comment=new_comment, currentUser=uid_token.user_id)[0]
 
 
 @app.post("/api/posts/like")

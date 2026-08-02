@@ -12,7 +12,7 @@ class TestPostCRUD:
             "title": "My First Post",
             "content": "Hello forum!",
         })
-        assert response.status_code == 200
+        assert response.status_code == 201
         data = response.json()
         assert data["id"] is not None
         assert data["title"] == "My First Post"
@@ -22,6 +22,9 @@ class TestPostCRUD:
         assert "user" in data
         assert data["user"]["username"] == "testuser"
         assert "password" not in data["user"]
+        assert data["like_count"] == 0
+        assert data["view_count"] == 0
+        assert data["is_liked"] is False
 
     def test_get_post_by_id(self, logged_in_client, sample_post):
         post_id = sample_post["id"]
@@ -47,6 +50,49 @@ class TestPostCRUD:
         titles = {p["title"] for p in data}
         assert "Post A" in titles
         assert "Post B" in titles
+
+
+class TestPostValidation:
+    def test_create_post_empty_title(self, logged_in_client):
+        response = logged_in_client.post("/api/posts/create", json={
+            "title": "", "content": "Body",
+        })
+        assert response.status_code == 422
+        assert "detail" in response.json()
+
+    def test_create_post_title_too_long(self, logged_in_client):
+        response = logged_in_client.post("/api/posts/create", json={
+            "title": "x" * 121, "content": "Body",
+        })
+        assert response.status_code == 422
+
+    def test_create_post_empty_content(self, logged_in_client):
+        response = logged_in_client.post("/api/posts/create", json={
+            "title": "Valid Title", "content": "",
+        })
+        assert response.status_code == 422
+
+    def test_create_post_content_too_long(self, logged_in_client):
+        response = logged_in_client.post("/api/posts/create", json={
+            "title": "Valid Title", "content": "x" * 10001,
+        })
+        assert response.status_code == 422
+
+    def test_create_post_by_missing_user(self, client):
+        import jwt as pyjwt
+        import os
+
+        token = pyjwt.encode(
+            {"user_id": 99999, "exp": 9999999999},
+            os.environ["JWT_SECRET_KEY"],
+            algorithm="HS256",
+        )
+        client.cookies.set("uid", token)
+        response = client.post("/api/posts/create", json={
+            "title": "Hello", "content": "World",
+        })
+        assert response.status_code == 404
+        assert response.json()["code"] == ErrorCode.USER_NOT_FOUND
 
 
 class TestPostReadEndpoints:
@@ -203,7 +249,7 @@ class TestPostAnswer:
             "post_id": post_id,
             "content": "The answer",
         })
-        assert comment_resp.status_code == 200
+        assert comment_resp.status_code == 201
         comment_id = comment_resp.json()["id"]
 
         response = logged_in_client.put("/api/comments/best", json={
@@ -220,6 +266,7 @@ class TestPostAnswer:
             "post_id": post_id,
             "content": "A comment",
         })
+        assert comment_resp.status_code == 201
         comment_id = comment_resp.json()["id"]
 
         from fastapi.testclient import TestClient

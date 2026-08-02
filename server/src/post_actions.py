@@ -42,7 +42,7 @@ def create_new_post(session: Session, post: NewPost, currentUser):
     user = session.get(User, currentUser)
 
     if user is None:
-        return False
+        raise ForUmError(404, ErrorCode.USER_NOT_FOUND, "User not found")
 
     data = Post(
         title=post.title,
