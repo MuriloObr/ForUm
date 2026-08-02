@@ -11,9 +11,9 @@ export function Login() {
   const userRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
-  const [res, setRes] = useState({
+  const [feedback, setFeedback] = useState({
     message: '',
-    color: 'white',
+    colorClass: 'white',
   })
 
   const { mutate, isLoading } = useLoginApiLoginPost({
@@ -21,14 +21,14 @@ export function Login() {
       onSuccess: () => navigate('/profile'),
       onError: (error) => {
         if (error instanceof AxiosError && error.response === undefined) {
-          setRes({
+          setFeedback({
             message: 'Não foi possível conectar ao servidor.',
-            color: 'text-red-500',
+            colorClass: 'text-red-500',
           })
         } else {
-          setRes({
+          setFeedback({
             message: 'Usuário ou senha inválidos.',
-            color: 'text-red-500',
+            colorClass: 'text-red-500',
           })
         }
       },
@@ -37,7 +37,7 @@ export function Login() {
 
   return (
     <Form.Root
-      action={() =>
+      onSubmit={() =>
         mutate({
           data: {
             user: userRef.current?.value ?? '',
@@ -53,7 +53,10 @@ export function Login() {
         type="password"
         ref={passwordRef}
       />
-      <Form.ResField res={res.message} color={res.color} />
+      <Form.Feedback
+        message={feedback.message}
+        colorClass={feedback.colorClass}
+      />
       <LoadingSubmit isLoading={isLoading} />
       <MyHoverCard trigger={<Question />}>
         <span className="font-bold text-xl">Test Login:</span> User: admin,

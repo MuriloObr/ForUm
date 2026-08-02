@@ -14,12 +14,12 @@ import { useNavigate } from 'react-router-dom'
 
 export function ConfigButton({ id, closed, name }: ConfigProps) {
   const queryClient = useQueryClient()
-  const { answer, setAnswer } = useContext(AnswerContext)
+  const { answerMode, toggleAnswerMode } = useContext(AnswerContext)
   const navigate = useNavigate()
 
   const modalRef = useRef<HTMLDialogElement>(null)
   const modalFieldRef = useRef<HTMLInputElement>(null)
-  const [statusMSG, setStatusMSG] = useState('')
+  const [statusMessage, setStatusMessage] = useState('')
 
   const { mutate, isLoading: mutateLoading } =
     useDeletePostApiPostsDeletePostIDDelete({
@@ -29,12 +29,12 @@ export function ConfigButton({ id, closed, name }: ConfigProps) {
           navigate('/profile')
         },
         onError: () => {
-          setStatusMSG(`Algo deu errado, ou voce não está logado!`)
+          setStatusMessage(`Algo deu errado, ou voce não está logado!`)
         },
       },
     })
 
-  async function handleCloseOpenPost() {
+  async function toggleClosed() {
     try {
       await closeOpenPostApiPostsClosedPut({ post_id: id })
       queryClient.invalidateQueries({ queryKey: ['post'] })
@@ -57,7 +57,7 @@ export function ConfigButton({ id, closed, name }: ConfigProps) {
                 'p-1 hover:brightness-90 rounded-md' +
                 (closed ? ' bg-emerald-500' : ' bg-purple-600')
               }
-              onClick={() => handleCloseOpenPost()}
+              onClick={() => toggleClosed()}
             >
               Mark as {closed ? 'Opened' : 'Closed'}
             </button>
@@ -65,9 +65,9 @@ export function ConfigButton({ id, closed, name }: ConfigProps) {
           <button
             className={
               'hover:brightness-90 rounded-md p-1' +
-              (answer ? ' bg-slate-800' : ' bg-slate-600')
+              (answerMode ? ' bg-slate-800' : ' bg-slate-600')
             }
-            onClick={() => setAnswer()}
+            onClick={() => toggleAnswerMode()}
           >
             Choose Best Answer
           </button>
@@ -79,10 +79,10 @@ export function ConfigButton({ id, closed, name }: ConfigProps) {
           </button>
           <Modal.Root
             ref={modalRef}
-            res={statusMSG}
+            message={statusMessage}
             onSubmit={() => {
               if (modalFieldRef.current?.value !== name) {
-                setStatusMSG('Campo preenchido incorretamente')
+                setStatusMessage('Campo preenchido incorretamente')
                 return
               }
               mutate({ postID: id })

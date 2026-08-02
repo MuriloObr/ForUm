@@ -2,8 +2,8 @@ import { forwardRef, useRef } from 'react'
 import { MyFormProps } from '../../types/typesComponents'
 
 export const FormRoot = ({
-  action,
-  cautionMessage,
+  onSubmit,
+  showCaution,
   children,
 }: MyFormProps['root']) => {
   const cautionRef = useRef<HTMLInputElement>(null)
@@ -14,23 +14,22 @@ export const FormRoot = ({
       <form
         onSubmit={(e) => {
           e.preventDefault()
-          if (cautionMessage === true) {
+          if (showCaution === true) {
             if (cautionRef.current?.checked) {
-              action()
+              onSubmit()
               return
             }
             return
           }
-          action()
-          console.log(action)
+          onSubmit()
         }}
         className={
           'h-fit w-1/5 flex flex-col items-center justify-center rounded-md text-zinc-900 font-bold' +
-          (cautionMessage ? ' gap-1 text-md' : ' gap-8 text-3xl')
+          (showCaution ? ' gap-1 text-md' : ' gap-8 text-3xl')
         }
       >
         {children}
-        {cautionMessage ? <CautionMessage ref={cautionRef} /> : ''}
+        {showCaution ? <CautionMessage ref={cautionRef} /> : ''}
         <button
           className="py-3 px-2 relative 
           after:absolute after:inline-block after:inset-x-0 after:h-0.5 after:w-full after:top-1 after:scale-x-0 after:origin-left after:bg-zinc-900 after:transition-all
@@ -39,7 +38,7 @@ export const FormRoot = ({
         >
           <input
             type="submit"
-            value={cautionMessage ? 'Registrar' : 'Entrar'}
+            value={showCaution ? 'Registrar' : 'Entrar'}
             className="text-2xl cursor-pointer"
           />
         </button>

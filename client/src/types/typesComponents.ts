@@ -11,7 +11,7 @@ export type AddModalProps = {
     children: ReactNode
     onSubmit: MouseEventHandler
     submitLabel: string
-    res: string
+    message: string
   }
   field: {
     type: string
@@ -31,8 +31,8 @@ export interface ConfigProps {
 
 export type MyFormProps = {
   root: {
-    action: () => void
-    cautionMessage?: true
+    onSubmit: () => void
+    showCaution?: true
     children: ReactNode
   }
   field: {

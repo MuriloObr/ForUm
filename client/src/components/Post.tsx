@@ -2,18 +2,18 @@
 import { Check, X, Target, ThumbsUp, TrendUp } from '@phosphor-icons/react'
 import { PostProps } from '../types/typesComponents'
 
-function verifyNumbers(num = 0, rel = false) {
-  if (rel) {
-    const number = (num * 100).toFixed()
-    if (isNaN(parseInt(number))) return '0%'
-    return `${number}%`
+function formatMetric(value = 0, isRatio = false) {
+  if (isRatio) {
+    const percentage = (value * 100).toFixed()
+    if (isNaN(parseInt(percentage))) return '0%'
+    return `${percentage}%`
   }
-  if (num > 1000000) {
-    return `${num.toLocaleString('pt-BR').toString().slice(0, -6)} M`
+  if (value > 1000000) {
+    return `${value.toLocaleString('pt-BR').toString().slice(0, -6)} M`
   }
-  if (num > 1000) {
-    return `${num.toLocaleString('pt-BR').toString().slice(0, -2)} k`
-  } else return num
+  if (value > 1000) {
+    return `${value.toLocaleString('pt-BR').toString().slice(0, -2)} k`
+  } else return value
 }
 
 export const Post = {
@@ -65,15 +65,15 @@ function Footer({ views, likes, nickname, createdAt }: PostProps['footer']) {
     <div className="mt-auto">
       <ul className="flex justify-between">
         <span className="mr-4 flex items-center gap-1 text-amber-500">
-          {verifyNumbers((likes ?? 0) / (views ?? 1), true)}
+          {formatMetric((likes ?? 0) / (views ?? 1), true)}
           <Target size={18} />
         </span>
         <span className="mr-4 flex items-center gap-1 text-blue-500">
-          {verifyNumbers(views ?? 0)}
+          {formatMetric(views ?? 0)}
           <TrendUp size={18} />
         </span>
         <span className="mr-4 flex items-center gap-1 text-rose-500">
-          {verifyNumbers(likes)}
+          {formatMetric(likes)}
           <ThumbsUp size={18} />
         </span>
         <span className="mr-4 ml-auto text-sm">{nickname}</span>

@@ -1,23 +1,22 @@
-import { forwardRef, useEffect, useRef, useState } from 'react'
+import { forwardRef, useRef, useState } from 'react'
 import { AddModalProps } from '@mytypes/typesComponents'
 import { markdownPurifiedStr } from '../../utils/MDpurifiedHelper'
 import { highlight } from '../../utils/highlighter'
 
 export const ModalArea = forwardRef<HTMLTextAreaElement, AddModalProps['area']>(
   function Area({ label, withMD }, ref) {
-    const [mdView, setMdView] = useState({ raw: 'block', view: 'hidden' })
-    const [MDstr, setMDstr] = useState(
+    const [viewClasses, setViewClasses] = useState({
+      editor: 'block',
+      preview: 'hidden',
+    })
+    const [previewHtml, setPreviewHtml] = useState(
       'Escreva seu texto para ver a preview aqui, se precisar saber sobre markdown entre [aqui](https://github.com/luong-komorebi/Markdown-Tutorial)',
     )
     const previewDivRef = useRef<HTMLDivElement>(null)
 
-    useEffect(() => {
-      console.log('effect')
-    }, [MDstr])
-
-    async function markedParse() {
-      const finalStr = await markdownPurifiedStr(MDstr)
-      setMDstr(finalStr)
+    async function renderPreview() {
+      const purifiedHtml = await markdownPurifiedStr(previewHtml)
+      setPreviewHtml(purifiedHtml)
     }
 
     return (
@@ -28,29 +27,29 @@ export const ModalArea = forwardRef<HTMLTextAreaElement, AddModalProps['area']>(
           rows={10}
           onChange={(ev) => {
             if (!withMD) return
-            setMDstr(ev.target.value)
+            setPreviewHtml(ev.target.value)
           }}
-          className={`w-full px-2 bg-transparent border-b-2 border-black text-2xl leading-8 font-normal outline-none ${mdView.raw}`}
+          className={`w-full px-2 bg-transparent border-b-2 border-black text-2xl leading-8 font-normal outline-none ${viewClasses.editor}`}
         />
         {withMD ? (
           <>
             <pre className="font-[inherit]">
               <div
                 ref={previewDivRef}
-                className={`markdown ${mdView.view}`}
-                dangerouslySetInnerHTML={{ __html: MDstr }}
+                className={`markdown ${viewClasses.preview}`}
+                dangerouslySetInnerHTML={{ __html: previewHtml }}
               />
             </pre>
             <div className="text-lg rounded bg-slate-800/60 text-white w-fit p-2 flex gap-2 font-bold mt-2">
               <button
                 onClick={(ev) => {
-                  markedParse()
+                  renderPreview()
                   highlight()
-                  if (mdView.view === 'hidden') {
-                    setMdView({ raw: 'hidden', view: 'block' })
+                  if (viewClasses.preview === 'hidden') {
+                    setViewClasses({ editor: 'hidden', preview: 'block' })
                     ev.currentTarget.textContent = 'View'
                   } else {
-                    setMdView({ raw: 'block', view: 'hidden' })
+                    setViewClasses({ editor: 'block', preview: 'hidden' })
                     ev.currentTarget.textContent = 'Raw'
                   }
                 }}

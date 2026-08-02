@@ -22,7 +22,7 @@ import { markdownPurifiedStr } from '../utils/MDpurifiedHelper'
 
 export function PostPage() {
   const { postID } = useParams()
-  const parsedPostID = postID === undefined ? 0 : parseInt(postID)
+  const postId = postID === undefined ? 0 : parseInt(postID)
 
   const {
     isLoading,
@@ -30,14 +30,14 @@ export function PostPage() {
     data: post,
     error,
     refetch,
-  } = useGetPostByIDApiPostsPostIDGet(parsedPostID, {
+  } = useGetPostByIDApiPostsPostIDGet(postId, {
     query: {
       staleTime: 15 * 60 * 1000,
     },
   })
 
   const { data: comments } = useGetAllCommentsFromPostApiCommentsPostIDGet(
-    parsedPostID,
+    postId,
     {
       query: {
         enabled: !!post,
@@ -48,13 +48,13 @@ export function PostPage() {
 
   const { data: profile } = useProfileApiProfileGet()
 
-  const [owner, setOwner] = useState<boolean>(false)
-  const { answer, setAnswer } = useContext(AnswerContext)
+  const [isOwner, setIsOwner] = useState<boolean>(false)
+  const { answerMode, toggleAnswerMode } = useContext(AnswerContext)
 
   const queryClient = useQueryClient()
 
-  const [MainMDCont, setMainMDCont] = useState<string>('')
-  const [CommentMDCont, setCommentMDCont] = useState<string[]>([])
+  const [postHtml, setPostHtml] = useState<string>('')
+  const [commentHtmlList, setCommentHtmlList] = useState<string[]>([])
 
   const { mutate: viewPost } = useViewPostApiPostsViewPost({
     mutation: {
@@ -63,25 +63,25 @@ export function PostPage() {
   })
 
   useEffect(() => {
-    if (parsedPostID === 0 || !post) return
-    viewPost({ data: { post_id: parsedPostID } })
-  }, [parsedPostID, post, viewPost])
+    if (postId === 0 || !post) return
+    viewPost({ data: { post_id: postId } })
+  }, [postId, post, viewPost])
 
   useEffect(() => {
     if (profile === undefined || post === undefined) return
-    setOwner(profile.id === post.user_id)
+    setIsOwner(profile.id === post.user_id)
   }, [profile, post])
 
   useEffect(() => {
-    async function parseContMD() {
-      const MDstr = await markdownPurifiedStr(post?.content ?? '')
-      setMainMDCont(MDstr)
-      const PromiseListMDstr = (comments ?? []).map(({ content }) =>
+    async function renderMarkdown() {
+      const purifiedHtml = await markdownPurifiedStr(post?.content ?? '')
+      setPostHtml(purifiedHtml)
+      const markdownPromises = (comments ?? []).map(({ content }) =>
         markdownPurifiedStr(content),
       )
-      const ListMDstr = await Promise.allSettled(PromiseListMDstr)
-      setCommentMDCont(
-        ListMDstr.map((promise) => {
+      const markdownResults = await Promise.allSettled(markdownPromises)
+      setCommentHtmlList(
+        markdownResults.map((promise) => {
           if (promise.status === 'fulfilled') {
             return promise.value
           } else {
@@ -90,13 +90,13 @@ export function PostPage() {
         }),
       )
     }
-    parseContMD()
+    renderMarkdown()
   }, [post?.content, comments])
 
   const modalRef = useRef<HTMLDialogElement>(null)
   const inputTextareaRef = useRef<HTMLTextAreaElement>(null)
 
-  const [commentStatus, setCommentStatus] = useState<string>('')
+  const [commentMessage, setCommentMessage] = useState<string>('')
 
   const { mutate, isLoading: mutateLoading } =
     useCreateNewCommentApiPostsCommentPost({
@@ -107,19 +107,19 @@ export function PostPage() {
         },
         onError: (error) => {
           if (error.response?.status === 401) {
-            setCommentStatus('Você precisa estar logado para comentar!')
+            setCommentMessage('Você precisa estar logado para comentar!')
           }
         },
       },
     })
 
-  async function melhorResposta(id: number) {
+  async function markAsBestAnswer(id: number) {
     try {
       await bestCommentApiCommentsBestPut({
         comment_id: id,
-        post_id: parsedPostID,
+        post_id: postId,
       })
-      setAnswer()
+      toggleAnswerMode()
       queryClient.invalidateQueries({ queryKey: ['post'] })
     } catch {
       // error handled silently
@@ -140,7 +140,7 @@ export function PostPage() {
           ''
         ) : (
           <>
-            {owner ? (
+            {isOwner ? (
               <ConfigButton
                 id={post.id}
                 closed={post.is_closed}
@@ -156,7 +156,7 @@ export function PostPage() {
                 isClosed={post.is_closed}
                 isMain={true}
               />
-              <PostComment.Content>{MainMDCont}</PostComment.Content>
+              <PostComment.Content>{postHtml}</PostComment.Content>
               <PostComment.Footer
                 nickname={post.user.nickname}
                 createdAt={post.created_at}
@@ -167,12 +167,12 @@ export function PostPage() {
                 return (
                   <>
                     <PostComment.Root isMain={false} key={comment.id}>
-                      {owner && answer ? (
+                      {isOwner && answerMode ? (
                         <div className="flex absolute -left-10">
                           <input
                             type="button"
                             className="appearance-none h-8 w-8 rounded-full bg-emerald-500 hover:brightness-90"
-                            onClick={() => melhorResposta(comment.id)}
+                            onClick={() => markAsBestAnswer(comment.id)}
                           />
                           <ArrowFatLinesRight
                             size={24}
@@ -191,7 +191,7 @@ export function PostPage() {
                       <PostComment.Content
                         isAnswer={post.answer_id === comment.id}
                       >
-                        {CommentMDCont[i]}
+                        {commentHtmlList[i]}
                       </PostComment.Content>
                       <PostComment.Footer
                         nickname={comment.user?.nickname ?? ''}
@@ -210,12 +210,12 @@ export function PostPage() {
         />
         <Modal.Root
           ref={modalRef}
-          res={commentStatus}
+          message={commentMessage}
           submitLabel="Comentar"
           onSubmit={() =>
             mutate({
               data: {
-                post_id: parsedPostID,
+                post_id: postId,
                 content: inputTextareaRef.current?.value ?? '',
               },
             })

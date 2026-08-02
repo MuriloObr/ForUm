@@ -11,9 +11,9 @@ export function Register() {
   const emailRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
-  const [res, setRes] = useState({
+  const [feedback, setFeedback] = useState({
     message: '',
-    color: 'white',
+    colorClass: 'white',
   })
 
   const { mutate, isLoading } = useCreateNewUserApiRegisterPost({
@@ -21,14 +21,14 @@ export function Register() {
       onSuccess: () => navigate('/login'),
       onError: (error) => {
         if (error instanceof AxiosError && error.response === undefined) {
-          setRes({
+          setFeedback({
             message: 'Não foi possível conectar ao servidor.',
-            color: 'text-red-500',
+            colorClass: 'text-red-500',
           })
         } else {
-          setRes({
+          setFeedback({
             message: 'Algo deu errado. Usuário ou email já cadastrados.',
-            color: 'text-red-500',
+            colorClass: 'text-red-500',
           })
         }
       },
@@ -37,8 +37,8 @@ export function Register() {
 
   return (
     <Form.Root
-      cautionMessage
-      action={() =>
+      showCaution
+      onSubmit={() =>
         mutate({
           data: {
             username: usernameRef.current?.value ?? '',
@@ -68,7 +68,10 @@ export function Register() {
         type="password"
         ref={passwordRef}
       />
-      <Form.ResField res={res.message} color={res.color} />
+      <Form.Feedback
+        message={feedback.message}
+        colorClass={feedback.colorClass}
+      />
       <LoadingSubmit isLoading={isLoading} />
     </Form.Root>
   )

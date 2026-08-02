@@ -1,25 +1,25 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, ReactNode, useState } from 'react'
 
-interface AnswerProps {
-  answer: boolean
-  setAnswer: () => void
+interface AnswerModeProps {
+  answerMode: boolean
+  toggleAnswerMode: () => void
 }
 
-export const AnswerContext = createContext<AnswerProps>({
-  answer: false,
-  setAnswer: () => {},
+export const AnswerContext = createContext<AnswerModeProps>({
+  answerMode: false,
+  toggleAnswerMode: () => {},
 })
 
 export const AnswerProvider = ({ children }: { children: ReactNode }) => {
-  const [answer, setAnswer] = useState(false)
+  const [answerMode, setAnswerMode] = useState(false)
 
-  function change() {
-    setAnswer((state) => !state)
+  function toggleAnswerMode() {
+    setAnswerMode((state) => !state)
   }
 
   return (
-    <AnswerContext.Provider value={{ answer, setAnswer: change }}>
+    <AnswerContext.Provider value={{ answerMode, toggleAnswerMode }}>
       {children}
     </AnswerContext.Provider>
   )
