@@ -1,13 +1,14 @@
-.PHONY: dev down test build prod lint generate help
+.PHONY: dev down test test-client build prod lint generate help
 
 help:
-	@echo "dev        - start Postgres + FastAPI (Docker) and Vite (host)"
-	@echo "down       - stop the Docker dev services"
-	@echo "test       - run server tests (pytest)"
-	@echo "build      - build the client (tsc + vite)"
-	@echo "prod       - build and run the production image (Docker)"
-	@echo "lint       - lint the client (eslint)"
-	@echo "generate   - regenerate client API types from openapi.json (orval)"
+	@echo "dev         - start Postgres + FastAPI (Docker) and Vite (host)"
+	@echo "down        - stop the Docker dev services"
+	@echo "test        - run server tests (pytest)"
+	@echo "test-client - run client tests (vitest)"
+	@echo "build       - build the client (tsc + vite)"
+	@echo "prod        - build and run the production image (Docker)"
+	@echo "lint        - lint the client (eslint)"
+	@echo "generate    - regenerate client API types from openapi.json (orval)"
 
 dev:
 	docker compose -f server/docker-compose.yml up -d --build db webapp
@@ -18,6 +19,9 @@ down:
 
 test:
 	uv run --directory server pytest
+
+test-client:
+	pnpm --dir client test
 
 build:
 	pnpm --dir client build

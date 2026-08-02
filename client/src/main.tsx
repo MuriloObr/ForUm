@@ -20,6 +20,8 @@ import './index.css'
 
 const queryClient = new QueryClient()
 
+const errorElement = <ErrorPage />
+
 export const appRoutes: RouteObject[] = [
   {
     path: '/',
@@ -29,15 +31,17 @@ export const appRoutes: RouteObject[] = [
         <App />
       </div>
     ),
-    errorElement: <ErrorPage />,
+    errorElement,
   },
   {
     path: '/login',
     element: <Login />,
+    errorElement,
   },
   {
     path: '/register',
     element: <Register />,
+    errorElement,
   },
   {
     path: '/profile',
@@ -47,6 +51,7 @@ export const appRoutes: RouteObject[] = [
         <Profile />
       </div>
     ),
+    errorElement,
   },
   {
     path: '/about',
@@ -56,6 +61,7 @@ export const appRoutes: RouteObject[] = [
         <About />
       </div>
     ),
+    errorElement,
   },
   {
     path: '/:username/:postID',
@@ -65,6 +71,7 @@ export const appRoutes: RouteObject[] = [
         <PostPage />
       </div>
     ),
+    errorElement,
   },
 ]
 

@@ -16,6 +16,7 @@ export function Profile() {
     isError,
     data: user,
     error,
+    refetch,
   } = useProfileApiProfileGet({
     query: {
       retry: 1,
@@ -45,7 +46,7 @@ export function Profile() {
   }
 
   if (isError) {
-    return <Error error={error} />
+    return <Error error={error} onRetry={refetch} />
   }
 
   return (

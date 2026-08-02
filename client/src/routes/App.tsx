@@ -18,6 +18,7 @@ export function App() {
     isError,
     data,
     error,
+    refetch,
   } = useGetAllPostsApiPostsGet({
     query: {
       retry: 5,
@@ -33,7 +34,7 @@ export function App() {
   const inputTitleRef = useRef<HTMLInputElement>(null)
   const inputTextareaRef = useRef<HTMLTextAreaElement>(null)
 
-  const [postStatus, setPostStatus] = useState<string>('')
+  const [postMessage, setPostMessage] = useState<string>('')
 
   const { mutate, isLoading: mutateLoading } =
     useCreateNewPostApiPostsCreatePost({
@@ -44,7 +45,7 @@ export function App() {
         },
         onError: (error) => {
           if (error.response?.status === 401) {
-            setPostStatus('Você precisa estar logado para postar!')
+            setPostMessage('Você precisa estar logado para postar!')
           }
         },
       },
@@ -61,7 +62,7 @@ export function App() {
     return <Loading />
   }
   if (isError) {
-    return <Error error={error} />
+    return <Error error={error} onRetry={refetch} />
   }
 
   return (
@@ -102,7 +103,7 @@ export function App() {
         />
         <Modal.Root
           ref={modalRef}
-          res={postStatus}
+          message={postMessage}
           submitLabel="Postar"
           onSubmit={() =>
             mutate({

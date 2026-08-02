@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { AxiosError } from 'axios'
 import { useNavigate } from 'react-router-dom'
 import { useCreateNewUserApiRegisterPost } from '../api/generated/endpoints'
 import { Form } from '../components/Form'
@@ -10,19 +11,24 @@ export function Register() {
   const emailRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
-  const [res, setRes] = useState({
+  const [feedback, setFeedback] = useState({
     message: '',
-    color: 'white',
+    colorClass: 'white',
   })
 
   const { mutate, isLoading } = useCreateNewUserApiRegisterPost({
     mutation: {
       onSuccess: () => navigate('/login'),
       onError: (error) => {
-        if (error.response?.status === 409) {
-          setRes({
-            message: 'Algo deu errado',
-            color: 'text-red-500',
+        if (error instanceof AxiosError && error.response === undefined) {
+          setFeedback({
+            message: 'Não foi possível conectar ao servidor.',
+            colorClass: 'text-red-500',
+          })
+        } else {
+          setFeedback({
+            message: 'Algo deu errado. Usuário ou email já cadastrados.',
+            colorClass: 'text-red-500',
           })
         }
       },
@@ -31,8 +37,8 @@ export function Register() {
 
   return (
     <Form.Root
-      cautionMessage
-      action={() =>
+      showCaution
+      onSubmit={() =>
         mutate({
           data: {
             username: usernameRef.current?.value ?? '',
@@ -62,7 +68,10 @@ export function Register() {
         type="password"
         ref={passwordRef}
       />
-      <Form.ResField res={res.message} color={res.color} />
+      <Form.Feedback
+        message={feedback.message}
+        colorClass={feedback.colorClass}
+      />
       <LoadingSubmit isLoading={isLoading} />
     </Form.Root>
   )
