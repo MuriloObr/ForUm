@@ -110,12 +110,10 @@ def createNewPost(uid_token: Annotated[UIDToken, Depends(token_validation)], new
     return create_new_post(post=new_post, currentUser=uid_token.user_id)[0]
 
 
-@app.delete("/api/posts/delete/{postID}", response_model=MessageResponse)
+@app.delete("/api/posts/delete/{postID}")
 def deletePost(uid_token: Annotated[UIDToken, Depends(token_validation)], postID: int):
-    task = delete_post(post_id=postID, currentUser=uid_token.user_id)
-    if task[0]:
-        return {"message": task[0]}
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=task[1])
+    delete_post(post_id=postID, currentUser=uid_token.user_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @app.post("/api/posts/comment", response_model=CommentResponse, status_code=status.HTTP_201_CREATED)
@@ -147,16 +145,13 @@ def unlikeComment(uid_token: Annotated[UIDToken, Depends(token_validation)], com
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@app.put("/api/comments/best", response_model=MessageResponse)
+@app.put("/api/comments/best", response_model=PostResponse)
 def bestComment(uid_token: Annotated[UIDToken, Depends(token_validation)], best_comment_ref: BestCommentRef):
-    task = choose_answer(
+    return choose_answer(
         post_id=best_comment_ref.post_id,
         comment_id=best_comment_ref.comment_id,
         currentUser=uid_token.user_id,
-    )
-    if task[0]:
-        return {"message": task[0]}
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=task[1])
+    )[0]
 
 
 @app.post("/api/posts/view")
@@ -165,12 +160,9 @@ def viewPost(uid_token: Annotated[UIDToken, Depends(token_validation)], post_ref
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@app.put("/api/posts/closed", response_model=MessageResponse)
+@app.put("/api/posts/closed", response_model=PostResponse)
 def closeOpenPost(uid_token: Annotated[UIDToken, Depends(token_validation)], post_ref: PostRef):
-    task = close_or_open_post(post_id=post_ref.post_id, currentUser=uid_token.user_id)
-    if task[0]:
-        return {"message": task[0]}
-    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=task[1])
+    return close_or_open_post(post_id=post_ref.post_id, currentUser=uid_token.user_id)[0]
 
 
 @app.post("/api/register", response_model=MessageResponse)

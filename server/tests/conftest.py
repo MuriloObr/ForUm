@@ -7,6 +7,7 @@ os.environ["DATABASE_URL"] = "sqlite://"
 import pytest
 from sqlmodel import SQLModel, Session, create_engine
 from sqlmodel.pool import StaticPool
+from sqlalchemy import event
 
 from src.db.models.user import User
 from src.db.models.post import Post
@@ -24,6 +25,13 @@ def test_engine_fixture():
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
+
+    @event.listens_for(engine, "connect")
+    def _enable_sqlite_foreign_keys(dbapi_connection, connection_record):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
+
     SQLModel.metadata.create_all(engine)
     yield engine
     SQLModel.metadata.drop_all(engine)

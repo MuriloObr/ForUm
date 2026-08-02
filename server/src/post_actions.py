@@ -62,12 +62,14 @@ def delete_post(session: Session, post_id, currentUser):
     post = session.get(Post, post_id)
     user = session.get(User, currentUser)
 
-    jsonPost = post.model_dump()
-    jsonUser = user.model_dump()
+    if post is None:
+        raise ForUmError(404, ErrorCode.POST_NOT_FOUND, "Post not found")
+    if user is None:
+        raise ForUmError(404, ErrorCode.USER_NOT_FOUND, "User not found")
+    if post.user_id != user.id:
+        raise ForUmError(403, ErrorCode.NOT_POST_OWNER, "Only the post author can do that")
 
     session.delete(post)
-
-    return f"Post: {jsonPost['title']} Deleted by User: {jsonUser['username']}"
 
 
 @errorHandler("post")
@@ -109,21 +111,20 @@ def choose_answer(session: Session, post_id, comment_id, currentUser):
     comment = session.get(Comment, comment_id)
     user = session.get(User, currentUser)
 
-    if post is None or comment is None or user is None:
-        return False
-
-    jsonPost = post.model_dump()
-    jsonUser = user.model_dump()
-
-    if jsonPost["user_id"] != jsonUser["id"]:
-        return False
-
+    if post is None:
+        raise ForUmError(404, ErrorCode.POST_NOT_FOUND, "Post not found")
+    if comment is None:
+        raise ForUmError(404, ErrorCode.COMMENT_NOT_FOUND, "Comment not found")
+    if user is None:
+        raise ForUmError(404, ErrorCode.USER_NOT_FOUND, "User not found")
+    if post.user_id != user.id:
+        raise ForUmError(403, ErrorCode.NOT_POST_OWNER, "Only the post author can do that")
     if comment.post_id != post.id:
-        return False
+        raise ForUmError(400, ErrorCode.COMMENT_NOT_ON_POST, "Comment does not belong to this post")
 
     post.answer_id = comment.id
 
-    return f"Post: {post.id} answer set to Comment: {comment.id}"
+    return serialize_post(session, post, currentUser)
 
 
 @errorHandler("post")
@@ -131,15 +132,16 @@ def close_or_open_post(session: Session, post_id, currentUser):
     post = session.get(Post, post_id)
     user = session.get(User, currentUser)
 
-    jsonPost = post.model_dump()
-    jsonUser = user.model_dump()
+    if post is None:
+        raise ForUmError(404, ErrorCode.POST_NOT_FOUND, "Post not found")
+    if user is None:
+        raise ForUmError(404, ErrorCode.USER_NOT_FOUND, "User not found")
+    if post.user_id != user.id:
+        raise ForUmError(403, ErrorCode.NOT_POST_OWNER, "Only the post author can do that")
 
-    if jsonPost["user_id"] != jsonUser["id"]:
-        return False
+    post.is_closed = not post.is_closed
 
-    post.is_closed = not jsonPost["is_closed"]
-
-    return f"Post: {jsonPost['id']} is now {not jsonPost['is_closed']}"
+    return serialize_post(session, post, currentUser)
 
 
 @errorHandler("post")
