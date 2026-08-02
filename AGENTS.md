@@ -130,6 +130,10 @@ Config in `orval.config.ts`; source of truth is the checked-in `openapi.json`. G
 
 Production build (`client/dist`) is baked into the combined image (`server/Dockerfile.prod`) and served by FastAPI at `/`, with API at `/api/*`. Deep links fall back to `index.html`.
 
+The image reads all config from environment variables (no `.env` is baked in): `DATABASE_URL`, `JWT_SECRET_KEY`, `JWT_ALGORITHM`, `CORS_ORIGINS`, optional `STATIC_DIR` and `PORT`. `entrypoint.sh` runs `alembic upgrade head` at boot and binds uvicorn to `$PORT` (default 8000), so it runs on platforms that inject `PORT` (Railway, Render, Fly, Heroku, Cloud Run).
+
+The build context is the repo root; a root `.dockerignore` keeps local secrets (`.env` files) and `node_modules` out of the image and the Docker daemon. `docker-compose.prod.yml` loads the root `.env` and does not override `DATABASE_URL`, so the `.env` value is authoritative (use `@db:5432` for the bundled `db` service, or a platform-managed URL for external Postgres).
+
 ## Documentation
 
 - `CONTEXT.md` — domain glossary

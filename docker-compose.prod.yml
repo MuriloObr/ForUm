@@ -26,9 +26,8 @@ services:
     networks:
       - app-tier
     env_file:
-      - server/.env
+      - .env
     environment:
-      DATABASE_URL: "postgresql+psycopg2://myuser:12345@db:5432/mydata"
       STATIC_DIR: "/app/client/dist"
     depends_on:
       db:

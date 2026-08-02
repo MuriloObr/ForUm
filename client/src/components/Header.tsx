@@ -1,13 +1,13 @@
 /* eslint-disable import/no-absolute-path */
-import searchIcon from "/searchSvg.svg";
-import { useContext } from "react";
-import { SearchContext } from "../context/SearchContext";
-import { useLoggedApiLoggedGet } from "../api/generated/endpoints";
+import searchIcon from '/searchSvg.svg'
+import { useContext } from 'react'
+import { SearchContext } from '../context/SearchContext'
+import { useLoggedApiLoggedGet } from '../api/generated/endpoints'
 
 export function Header({ withoutSearchBar }: { withoutSearchBar?: true }) {
-  const { data } = useLoggedApiLoggedGet();
+  const { data } = useLoggedApiLoggedGet()
 
-  const { search, setSearch } = useContext(SearchContext);
+  const { search, setSearch } = useContext(SearchContext)
 
   return (
     <header className="p-4 flex items-center justify-between bg-zinc-900 border-b-2 border-zinc-600">
@@ -18,7 +18,7 @@ export function Header({ withoutSearchBar }: { withoutSearchBar?: true }) {
         </span>
       </div>
       {withoutSearchBar ? (
-        ""
+        ''
       ) : (
         <div className="sm:flex hidden items-center 2xl:w-[64%] lg:w-[55%] md:w-[42%] sm:w-[30%] ml-auto mr-5 py-1.5 px-3 bg-zinc-800 rounded-lg border border-zinc-500 focus-within:border-zinc-300">
           <img src={searchIcon} alt="Buscar" className="h-6 w-6 opacity-60" />
@@ -69,5 +69,5 @@ export function Header({ withoutSearchBar }: { withoutSearchBar?: true }) {
         )}
       </nav>
     </header>
-  );
+  )
 }
