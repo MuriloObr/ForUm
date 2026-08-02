@@ -139,3 +139,13 @@ The build context is the repo root; a root `.dockerignore` keeps local secrets (
 - `CONTEXT.md` — domain glossary
 - `docs/adr/` — architectural decision records
 - `client/DESIGN.md` — design system
+
+## Agent skills
+
+### Issue tracker
+
+Issues and tickets live as GitHub issues in this repo, managed via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+Single-context layout — one root `CONTEXT.md` plus `docs/adr/`. See `docs/agents/domain.md`.
