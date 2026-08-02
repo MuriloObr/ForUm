@@ -1,5 +1,7 @@
 import pytest
 
+from utils.errors import ErrorCode
+
 
 class TestRegister:
     def test_register_success(self, client):
@@ -91,13 +93,14 @@ class TestTokenValidation:
     def test_logged_without_token(self, client):
         response = client.get("/api/logged")
         assert response.status_code == 401
-        assert "Token is missing" in response.json()["detail"]
+        assert response.json() == {"code": ErrorCode.HTTP_ERROR, "message": "Token is missing"}
 
     def test_logged_with_invalid_token(self, client):
         client.cookies.set("uid", "invalid.jwt.token")
         response = client.get("/api/logged")
         assert response.status_code == 401
-        assert "Error" in response.json()["detail"]
+        assert response.json()["code"] == ErrorCode.HTTP_ERROR
+        assert isinstance(response.json()["message"], str)
 
 
 class TestProfile:

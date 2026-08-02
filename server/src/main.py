@@ -8,6 +8,7 @@ from fastapi.responses import FileResponse
 from src.comment_actions import create_new_comment, get_all_comments_from_post, like_comment, rm_like_comment
 from src.post_actions import choose_answer, close_or_open_post, create_new_post, delete_post, get_all_posts, get_all_posts_from_user, get_post_by_id, like_post, rm_like_post, view_post
 from src.user_actions import create_new_user, get_user_by_id, login_with_user_or_email
+from utils.errors import register_error_handlers
 from utils.api_types import (
     BestCommentRef, CommentRef, CommentResponse, LoggedResponse,
     MessageResponse, NewComment, NewPost, NewUser, PostRef,
@@ -15,6 +16,7 @@ from utils.api_types import (
 )
 
 app = FastAPI()
+register_error_handlers(app)
 
 cors_raw = getenv("CORS_ORIGINS", "")
 origins = [o.strip() for o in cors_raw.split(",") if o.strip()]

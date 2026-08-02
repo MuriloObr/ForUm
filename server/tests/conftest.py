@@ -51,7 +51,7 @@ def client_fixture(test_engine):
     from fastapi.testclient import TestClient
     from src.main import app
 
-    with TestClient(app) as c:
+    with TestClient(app, raise_server_exceptions=False) as c:
         yield c
 
 
