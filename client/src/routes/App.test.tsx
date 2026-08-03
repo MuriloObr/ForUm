@@ -61,6 +61,9 @@ const samplePost: PostResponse = {
     created_at: '2026-08-02T00:00:00Z',
     updated_at: '2026-08-02T00:00:00Z',
   },
+  like_count: 0,
+  view_count: 0,
+  is_liked: false,
 }
 
 function renderApp() {
@@ -89,6 +92,20 @@ describe('App', () => {
 
     expect(screen.getByText('Hello ForUm')).toBeInTheDocument()
     expect(screen.getByText('First post here')).toBeInTheDocument()
+  })
+
+  it('shows real view and like counts on post cards', () => {
+    mocks.posts = {
+      isLoading: false,
+      isError: false,
+      data: [{ ...samplePost, view_count: 250, like_count: 10 }],
+      error: undefined,
+    }
+
+    renderApp()
+
+    expect(screen.getByText('250')).toBeInTheDocument()
+    expect(screen.getByText('10')).toBeInTheDocument()
   })
 
   it('renders the empty fallback when there are no posts', () => {

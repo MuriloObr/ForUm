@@ -72,8 +72,10 @@ export type PostCommentProps = {
     id: number
     title: string
     likes?: number
+    liked?: boolean
     isClosed: boolean
     isMain?: boolean
+    postId: number
   }
   content: {
     children: string | TrustedHTML

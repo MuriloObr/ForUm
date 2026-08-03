@@ -12,6 +12,9 @@ import {
   likeCommentApiCommentsLikePost,
   unlikePostApiPostsLikeDelete,
   unlikeCommentApiCommentsLikeDelete,
+  getGetPostByIDApiPostsPostIDGetQueryKey,
+  getGetAllCommentsFromPostApiCommentsPostIDGetQueryKey,
+  getGetAllPostsApiPostsGetQueryKey,
 } from '../api/generated/endpoints'
 import { useQueryClient } from '@tanstack/react-query'
 import { PostCommentProps } from '../types/typesComponents'
@@ -48,25 +51,46 @@ function Header({
   id,
   title,
   likes = 0,
+  liked = false,
   isClosed,
   isMain = false,
+  postId,
 }: PostCommentProps['header']) {
   const queryClient = useQueryClient()
+
+  function refreshPostLikes() {
+    queryClient.invalidateQueries({
+      queryKey: getGetPostByIDApiPostsPostIDGetQueryKey(postId),
+    })
+    queryClient.invalidateQueries({
+      queryKey: getGetAllPostsApiPostsGetQueryKey(),
+    })
+  }
+
+  function refreshCommentLikes() {
+    queryClient.invalidateQueries({
+      queryKey: getGetAllCommentsFromPostApiCommentsPostIDGetQueryKey(postId),
+    })
+  }
 
   return (
     <div className="flex justify-between items-center gap-5">
       <span className="flex flex-col items-center">
         <CaretUp
           size={32}
-          className="border-transparent border rounded-md hover:border-zinc-500/70 transition-all cursor-pointer"
+          className={
+            'border-transparent border rounded-md hover:border-zinc-500/70 transition-all cursor-pointer' +
+            (liked ? ' text-rose-500' : '')
+          }
           onClick={async () => {
             try {
               if (isMain) {
-                await likePostApiPostsLikePost({ post_id: id })
+                await likePostApiPostsLikePost({ post_id: postId })
+                refreshPostLikes()
               } else {
                 await likeCommentApiCommentsLikePost({ comment_id: id })
+                refreshCommentLikes()
               }
-              queryClient.invalidateQueries({ queryKey: ['post'] })
             } catch {
               // error handled silently
             }
@@ -79,11 +103,12 @@ function Header({
           onClick={async () => {
             try {
               if (isMain) {
-                await unlikePostApiPostsLikeDelete({ post_id: id })
+                await unlikePostApiPostsLikeDelete({ post_id: postId })
+                refreshPostLikes()
               } else {
                 await unlikeCommentApiCommentsLikeDelete({ comment_id: id })
+                refreshCommentLikes()
               }
-              queryClient.invalidateQueries({ queryKey: ['post'] })
             } catch {
               // error handled silently
             }

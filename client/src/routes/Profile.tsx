@@ -1,5 +1,5 @@
 import {
-  useProfileApiProfileGet,
+  useLoggedApiLoggedGet,
   useGetAllPostsFromUserApiPostsUserUserIDGet,
   useLogoutApiLogoutPost,
 } from '../api/generated/endpoints'
@@ -17,7 +17,7 @@ export function Profile() {
     data: user,
     error,
     refetch,
-  } = useProfileApiProfileGet({
+  } = useLoggedApiLoggedGet({
     query: {
       retry: 1,
       refetchOnWindowFocus: false,
@@ -76,6 +76,8 @@ export function Profile() {
                         </Post.Header>
                         <Post.Content>{post.content}</Post.Content>
                         <Post.Footer
+                          views={post.view_count}
+                          likes={post.like_count}
                           createdAt={post.created_at}
                           nickname={post.user.nickname}
                         />

@@ -70,12 +70,23 @@ export function App() {
       <ul className="h-fit flex flex-col gap-5">
         {search.length > 0 ? (
           filteredPosts?.map(
-            ({ id, title, content, user, is_closed, created_at }) => {
+            ({
+              id,
+              title,
+              content,
+              user,
+              is_closed,
+              created_at,
+              view_count,
+              like_count,
+            }) => {
               return (
                 <Post.Root username={user.username} postID={id} key={id}>
                   <Post.Header closed={is_closed}>{title}</Post.Header>
                   <Post.Content>{content}</Post.Content>
                   <Post.Footer
+                    views={view_count}
+                    likes={like_count}
                     createdAt={created_at}
                     nickname={user.nickname}
                   />
@@ -86,15 +97,31 @@ export function App() {
         ) : data === undefined || data.length === 0 ? (
           <div>No posts to see...</div>
         ) : (
-          data.map(({ id, title, content, user, is_closed, created_at }) => {
-            return (
-              <Post.Root username={user.username} postID={id} key={id}>
-                <Post.Header closed={is_closed}>{title}</Post.Header>
-                <Post.Content>{content.replaceAll('#', '')}</Post.Content>
-                <Post.Footer createdAt={created_at} nickname={user.nickname} />
-              </Post.Root>
-            )
-          })
+          data.map(
+            ({
+              id,
+              title,
+              content,
+              user,
+              is_closed,
+              created_at,
+              view_count,
+              like_count,
+            }) => {
+              return (
+                <Post.Root username={user.username} postID={id} key={id}>
+                  <Post.Header closed={is_closed}>{title}</Post.Header>
+                  <Post.Content>{content.replaceAll('#', '')}</Post.Content>
+                  <Post.Footer
+                    views={view_count}
+                    likes={like_count}
+                    createdAt={created_at}
+                    nickname={user.nickname}
+                  />
+                </Post.Root>
+              )
+            },
+          )
         )}
         <AddButton
           text="+ Post"

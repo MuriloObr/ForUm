@@ -9,7 +9,7 @@ import { useContext, useEffect, useRef, useState } from 'react'
 import {
   useGetPostByIDApiPostsPostIDGet,
   useGetAllCommentsFromPostApiCommentsPostIDGet,
-  useProfileApiProfileGet,
+  useLoggedApiLoggedGet,
   useCreateNewCommentApiPostsCommentPost,
   useViewPostApiPostsViewPost,
   bestCommentApiCommentsBestPut,
@@ -46,7 +46,7 @@ export function PostPage() {
     },
   )
 
-  const { data: profile } = useProfileApiProfileGet()
+  const { data: profile } = useLoggedApiLoggedGet()
 
   const [isOwner, setIsOwner] = useState<boolean>(false)
   const { answerMode, toggleAnswerMode } = useContext(AnswerContext)
@@ -152,7 +152,10 @@ export function PostPage() {
             <PostComment.Root isMain={true} key={post.id}>
               <PostComment.Header
                 id={post.id}
+                postId={postId}
                 title={post.title}
+                likes={post.like_count}
+                liked={post.is_liked}
                 isClosed={post.is_closed}
                 isMain={true}
               />
@@ -184,7 +187,10 @@ export function PostPage() {
                       )}
                       <PostComment.Header
                         id={comment.id}
+                        postId={postId}
                         title="comentario"
+                        likes={comment.like_count}
+                        liked={comment.is_liked}
                         isClosed={false}
                         isMain={false}
                       />
