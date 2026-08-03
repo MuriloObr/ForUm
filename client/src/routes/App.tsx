@@ -4,6 +4,7 @@ import { SearchContext } from '../context/SearchContext.tsx'
 import {
   useGetAllPostsApiPostsGet,
   useCreateNewPostApiPostsCreatePost,
+  getGetAllPostsApiPostsGetQueryKey,
 } from '../api/generated/endpoints'
 import { Post } from '../components/Post.tsx'
 import { Loading } from '../components/Loading'
@@ -41,7 +42,9 @@ export function App() {
       mutation: {
         onSuccess: () => {
           modalRef.current?.close()
-          queryClient.invalidateQueries({ queryKey: ['posts'] })
+          queryClient.invalidateQueries({
+            queryKey: getGetAllPostsApiPostsGetQueryKey(),
+          })
         },
         onError: (error) => {
           if (error.response?.status === 401) {

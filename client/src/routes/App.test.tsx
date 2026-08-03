@@ -1,10 +1,12 @@
 import { describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 import { SearchProvider } from '../context/SearchContext'
 import { App } from './App'
+import { getGetAllPostsApiPostsGetQueryKey } from '../api/generated/endpoints'
+import { QueryProbe, waitForIdle } from '../test/queryProbe'
 import type { PostResponse } from '../api/generated/model/postResponse'
 
 const mocks = vi.hoisted(() => ({
@@ -14,15 +16,24 @@ const mocks = vi.hoisted(() => ({
     data: undefined as PostResponse[] | undefined,
     error: undefined as unknown,
   },
+  onCreatePost: undefined as (() => void) | undefined,
 }))
 
-vi.mock('../api/generated/endpoints', () => ({
-  useGetAllPostsApiPostsGet: () => mocks.posts,
-  useCreateNewPostApiPostsCreatePost: () => ({
-    mutate: vi.fn(),
-    isLoading: false,
-  }),
-}))
+vi.mock('../api/generated/endpoints', async (importOriginal) => {
+  const actual = (await importOriginal()) as Record<string, unknown>
+  return {
+    ...actual,
+    useGetAllPostsApiPostsGet: () => mocks.posts,
+    useCreateNewPostApiPostsCreatePost: ({
+      mutation,
+    }: {
+      mutation: { onSuccess: () => void }
+    }) => {
+      mocks.onCreatePost = mutation.onSuccess
+      return { mutate: vi.fn(), isLoading: false }
+    },
+  }
+})
 
 function makeAxiosError(status?: number): AxiosError {
   const response = status
@@ -119,6 +130,39 @@ describe('App', () => {
     renderApp()
 
     expect(screen.getByText('No posts to see...')).toBeInTheDocument()
+  })
+
+  it('refreshes the feed when a new post is created', async () => {
+    mocks.posts = {
+      isLoading: false,
+      isError: false,
+      data: [samplePost],
+      error: undefined,
+    }
+
+    const feedQueryFn = vi.fn().mockReturnValue('feed')
+
+    const queryClient = new QueryClient()
+    render(
+      <MemoryRouter>
+        <QueryClientProvider client={queryClient}>
+          <SearchProvider>
+            <App />
+            <QueryProbe
+              queryKey={getGetAllPostsApiPostsGetQueryKey()}
+              queryFn={feedQueryFn}
+            />
+          </SearchProvider>
+        </QueryClientProvider>
+      </MemoryRouter>,
+    )
+
+    await waitForIdle(queryClient, getGetAllPostsApiPostsGetQueryKey())
+    expect(feedQueryFn).toHaveBeenCalledTimes(1)
+
+    mocks.onCreatePost?.()
+
+    await waitFor(() => expect(feedQueryFn).toHaveBeenCalledTimes(2))
   })
 
   it('renders the error fallback when the request fails', () => {

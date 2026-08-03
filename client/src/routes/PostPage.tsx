@@ -13,6 +13,9 @@ import {
   useCreateNewCommentApiPostsCommentPost,
   useViewPostApiPostsViewPost,
   bestCommentApiCommentsBestPut,
+  getGetPostByIDApiPostsPostIDGetQueryKey,
+  getGetAllCommentsFromPostApiCommentsPostIDGetQueryKey,
+  getGetAllPostsApiPostsGetQueryKey,
 } from '../api/generated/endpoints'
 import { ArrowFatLinesRight } from '@phosphor-icons/react'
 import { ConfigButton } from '../components/ui/ConfigButton'
@@ -58,7 +61,11 @@ export function PostPage() {
 
   const { mutate: viewPost } = useViewPostApiPostsViewPost({
     mutation: {
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: ['posts'] }),
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: getGetAllPostsApiPostsGetQueryKey(),
+        })
+      },
     },
   })
 
@@ -103,7 +110,10 @@ export function PostPage() {
       mutation: {
         onSuccess: () => {
           modalRef.current?.close()
-          queryClient.invalidateQueries({ queryKey: ['post'] })
+          queryClient.invalidateQueries({
+            queryKey:
+              getGetAllCommentsFromPostApiCommentsPostIDGetQueryKey(postId),
+          })
         },
         onError: (error) => {
           if (error.response?.status === 401) {
@@ -120,7 +130,9 @@ export function PostPage() {
         post_id: postId,
       })
       toggleAnswerMode()
-      queryClient.invalidateQueries({ queryKey: ['post'] })
+      queryClient.invalidateQueries({
+        queryKey: getGetPostByIDApiPostsPostIDGetQueryKey(postId),
+      })
     } catch {
       // error handled silently
     }
@@ -145,6 +157,7 @@ export function PostPage() {
                 id={post.id}
                 closed={post.is_closed}
                 name={post.title}
+                userID={profile?.id}
               />
             ) : (
               ''

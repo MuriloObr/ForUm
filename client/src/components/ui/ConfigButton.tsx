@@ -3,6 +3,9 @@ import { GearSix, X } from '@phosphor-icons/react'
 import {
   useDeletePostApiPostsDeletePostIDDelete,
   closeOpenPostApiPostsClosedPut,
+  getGetPostByIDApiPostsPostIDGetQueryKey,
+  getGetAllPostsApiPostsGetQueryKey,
+  getGetAllPostsFromUserApiPostsUserUserIDGetQueryKey,
 } from '../../api/generated/endpoints'
 import { useQueryClient } from '@tanstack/react-query'
 import { useContext, useRef, useState } from 'react'
@@ -12,7 +15,7 @@ import { Modal } from '@components/Modal'
 import { LoadingSubmit } from '@components/LoadingSubmit'
 import { useNavigate } from 'react-router-dom'
 
-export function ConfigButton({ id, closed, name }: ConfigProps) {
+export function ConfigButton({ id, closed, name, userID }: ConfigProps) {
   const queryClient = useQueryClient()
   const { answerMode, toggleAnswerMode } = useContext(AnswerContext)
   const navigate = useNavigate()
@@ -25,7 +28,18 @@ export function ConfigButton({ id, closed, name }: ConfigProps) {
     useDeletePostApiPostsDeletePostIDDelete({
       mutation: {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ['post'] })
+          queryClient.invalidateQueries({
+            queryKey: getGetPostByIDApiPostsPostIDGetQueryKey(id),
+          })
+          queryClient.invalidateQueries({
+            queryKey: getGetAllPostsApiPostsGetQueryKey(),
+          })
+          if (userID !== undefined) {
+            queryClient.invalidateQueries({
+              queryKey:
+                getGetAllPostsFromUserApiPostsUserUserIDGetQueryKey(userID),
+            })
+          }
           navigate('/profile')
         },
         onError: () => {
@@ -37,7 +51,12 @@ export function ConfigButton({ id, closed, name }: ConfigProps) {
   async function toggleClosed() {
     try {
       await closeOpenPostApiPostsClosedPut({ post_id: id })
-      queryClient.invalidateQueries({ queryKey: ['post'] })
+      queryClient.invalidateQueries({
+        queryKey: getGetPostByIDApiPostsPostIDGetQueryKey(id),
+      })
+      queryClient.invalidateQueries({
+        queryKey: getGetAllPostsApiPostsGetQueryKey(),
+      })
     } catch {
       // error handled silently
     }

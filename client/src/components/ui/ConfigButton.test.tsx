@@ -1,0 +1,150 @@
+import { describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import type { ReactNode } from 'react'
+import { ConfigButton } from './ConfigButton'
+import { AnswerContext } from '../../context/AnswerContext'
+import { QueryProbe, waitForIdle } from '../../test/queryProbe'
+import {
+  closeOpenPostApiPostsClosedPut,
+  getGetPostByIDApiPostsPostIDGetQueryKey,
+  getGetAllPostsApiPostsGetQueryKey,
+  getGetAllPostsFromUserApiPostsUserUserIDGetQueryKey,
+} from '../../api/generated/endpoints'
+import type { PostResponse } from '../../api/generated/model/postResponse'
+
+const samplePost: PostResponse = {
+  id: 7,
+  title: 'Hello ForUm',
+  content: 'First post here',
+  is_closed: false,
+  answer_id: null,
+  created_at: '2026-08-02T00:00:00Z',
+  updated_at: '2026-08-02T00:00:00Z',
+  user_id: 1,
+  user: {
+    id: 1,
+    nickname: 'Alice',
+    username: 'alice',
+    email: 'alice@forum.dev',
+    created_at: '2026-08-02T00:00:00Z',
+    updated_at: '2026-08-02T00:00:00Z',
+  },
+  like_count: 0,
+  view_count: 0,
+  is_liked: false,
+}
+
+const mocks = vi.hoisted(() => ({
+  onDelete: undefined as (() => void) | undefined,
+}))
+
+vi.mock('../../api/generated/endpoints', async (importOriginal) => {
+  const actual = (await importOriginal()) as Record<string, unknown>
+  return {
+    ...actual,
+    useDeletePostApiPostsDeletePostIDDelete: ({
+      mutation,
+    }: {
+      mutation: { onSuccess: () => void }
+    }) => {
+      mocks.onDelete = mutation.onSuccess
+      return { mutate: vi.fn(), isLoading: false }
+    },
+    closeOpenPostApiPostsClosedPut: vi.fn(),
+  }
+})
+
+function renderConfig({
+  probe = null,
+  closed = false,
+}: {
+  probe?: ReactNode
+  closed?: boolean
+} = {}) {
+  const queryClient = new QueryClient()
+  render(
+    <MemoryRouter initialEntries={['/']}>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <QueryClientProvider client={queryClient}>
+              <AnswerContext.Provider
+                value={{ answerMode: false, toggleAnswerMode: vi.fn() }}
+              >
+                <ConfigButton id={7} closed={closed} name="Hello" userID={7} />
+                {probe}
+              </AnswerContext.Provider>
+            </QueryClientProvider>
+          }
+        />
+        <Route path="/profile" element={<div>profile marker</div>} />
+      </Routes>
+    </MemoryRouter>,
+  )
+  return { queryClient }
+}
+
+describe('ConfigButton', () => {
+  it('refreshes the feed and the profile list after deleting a post', async () => {
+    const feedQueryFn = vi.fn().mockReturnValue('feed')
+    const userPostsQueryFn = vi.fn().mockReturnValue('user-posts')
+    const { queryClient } = renderConfig({
+      probe: (
+        <>
+          <QueryProbe
+            queryKey={getGetAllPostsApiPostsGetQueryKey()}
+            queryFn={feedQueryFn}
+          />
+          <QueryProbe
+            queryKey={getGetAllPostsFromUserApiPostsUserUserIDGetQueryKey(7)}
+            queryFn={userPostsQueryFn}
+          />
+        </>
+      ),
+    })
+
+    await waitFor(() => expect(feedQueryFn).toHaveBeenCalledTimes(1))
+    await waitForIdle(queryClient, getGetAllPostsApiPostsGetQueryKey())
+    await waitForIdle(
+      queryClient,
+      getGetAllPostsFromUserApiPostsUserUserIDGetQueryKey(7),
+    )
+
+    mocks.onDelete?.()
+
+    await waitFor(() => expect(feedQueryFn).toHaveBeenCalledTimes(2))
+    await waitFor(() => expect(userPostsQueryFn).toHaveBeenCalledTimes(2))
+    expect(screen.getByText('profile marker')).toBeInTheDocument()
+  })
+
+  it('refreshes the post after closing or reopening it', async () => {
+    vi.mocked(closeOpenPostApiPostsClosedPut).mockResolvedValue(samplePost)
+
+    const queryFn = vi.fn().mockReturnValue('post-data')
+    const { queryClient } = renderConfig({
+      probe: (
+        <QueryProbe
+          queryKey={getGetPostByIDApiPostsPostIDGetQueryKey(7)}
+          queryFn={queryFn}
+        />
+      ),
+    })
+
+    await waitFor(() => expect(queryFn).toHaveBeenCalledTimes(1))
+    await waitForIdle(queryClient, getGetPostByIDApiPostsPostIDGetQueryKey(7))
+
+    fireEvent.click(screen.getByRole('button'))
+    await waitFor(() => screen.getByText('Mark as Closed'))
+    fireEvent.click(screen.getByText('Mark as Closed'))
+
+    await waitFor(() =>
+      expect(closeOpenPostApiPostsClosedPut).toHaveBeenCalledWith({
+        post_id: 7,
+      }),
+    )
+    await waitFor(() => expect(queryFn).toHaveBeenCalledTimes(2))
+  })
+})

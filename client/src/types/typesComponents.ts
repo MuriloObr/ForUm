@@ -27,6 +27,7 @@ export interface ConfigProps {
   id: number
   closed: boolean
   name: string
+  userID?: number
 }
 
 export type MyFormProps = {
