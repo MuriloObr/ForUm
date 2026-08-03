@@ -7,12 +7,12 @@ import {
 } from '@tanstack/react-query'
 import { PostComment } from './PostComment'
 import {
-  likePostApiPostsLikePost,
-  likeCommentApiCommentsLikePost,
-  unlikePostApiPostsLikeDelete,
-  unlikeCommentApiCommentsLikeDelete,
-  getGetPostByIDApiPostsPostIDGetQueryKey,
-  getGetAllCommentsFromPostApiCommentsPostIDGetQueryKey,
+  likePost,
+  likeComment,
+  unlikePost,
+  unlikeComment,
+  getGetPostQueryKey,
+  getGetPostCommentsQueryKey,
 } from '../api/generated/endpoints'
 import type { QueryFunction, QueryKey } from '@tanstack/react-query'
 import type { ComponentProps } from 'react'
@@ -21,10 +21,10 @@ vi.mock('../api/generated/endpoints', async (importOriginal) => {
   const actual = (await importOriginal()) as Record<string, unknown>
   return {
     ...actual,
-    likePostApiPostsLikePost: vi.fn(),
-    likeCommentApiCommentsLikePost: vi.fn(),
-    unlikePostApiPostsLikeDelete: vi.fn(),
-    unlikeCommentApiCommentsLikeDelete: vi.fn(),
+    likePost: vi.fn(),
+    likeComment: vi.fn(),
+    unlikePost: vi.fn(),
+    unlikeComment: vi.fn(),
   }
 })
 
@@ -91,7 +91,7 @@ describe('PostComment Header', () => {
 
   it('likes the main post and refreshes the post', async () => {
     const queryFn = vi.fn().mockReturnValue('data')
-    vi.mocked(likePostApiPostsLikePost).mockResolvedValue(undefined)
+    vi.mocked(likePost).mockResolvedValue(undefined)
 
     renderHeaderWithQuery(
       {
@@ -101,21 +101,19 @@ describe('PostComment Header', () => {
         isClosed: false,
         isMain: true,
       },
-      getGetPostByIDApiPostsPostIDGetQueryKey(1),
+      getGetPostQueryKey(1),
       queryFn,
     )
 
     fireEvent.click(caretAt(0))
 
-    await waitFor(() =>
-      expect(likePostApiPostsLikePost).toHaveBeenCalledWith({ post_id: 1 }),
-    )
+    await waitFor(() => expect(likePost).toHaveBeenCalledWith({ post_id: 1 }))
     await waitFor(() => expect(queryFn).toHaveBeenCalledTimes(2))
   })
 
   it('unlikes the main post and refreshes the post', async () => {
     const queryFn = vi.fn().mockReturnValue('data')
-    vi.mocked(unlikePostApiPostsLikeDelete).mockResolvedValue(undefined)
+    vi.mocked(unlikePost).mockResolvedValue(undefined)
 
     renderHeaderWithQuery(
       {
@@ -125,21 +123,19 @@ describe('PostComment Header', () => {
         isClosed: false,
         isMain: true,
       },
-      getGetPostByIDApiPostsPostIDGetQueryKey(1),
+      getGetPostQueryKey(1),
       queryFn,
     )
 
     fireEvent.click(caretAt(1))
 
-    await waitFor(() =>
-      expect(unlikePostApiPostsLikeDelete).toHaveBeenCalledWith({ post_id: 1 }),
-    )
+    await waitFor(() => expect(unlikePost).toHaveBeenCalledWith({ post_id: 1 }))
     await waitFor(() => expect(queryFn).toHaveBeenCalledTimes(2))
   })
 
   it('likes a comment and refreshes the comments', async () => {
     const queryFn = vi.fn().mockReturnValue('data')
-    vi.mocked(likeCommentApiCommentsLikePost).mockResolvedValue(undefined)
+    vi.mocked(likeComment).mockResolvedValue(undefined)
 
     renderHeaderWithQuery(
       {
@@ -149,14 +145,14 @@ describe('PostComment Header', () => {
         isClosed: false,
         isMain: false,
       },
-      getGetAllCommentsFromPostApiCommentsPostIDGetQueryKey(1),
+      getGetPostCommentsQueryKey(1),
       queryFn,
     )
 
     fireEvent.click(caretAt(0))
 
     await waitFor(() =>
-      expect(likeCommentApiCommentsLikePost).toHaveBeenCalledWith({
+      expect(likeComment).toHaveBeenCalledWith({
         comment_id: 5,
       }),
     )
@@ -165,7 +161,7 @@ describe('PostComment Header', () => {
 
   it('unlikes a comment and refreshes the comments', async () => {
     const queryFn = vi.fn().mockReturnValue('data')
-    vi.mocked(unlikeCommentApiCommentsLikeDelete).mockResolvedValue(undefined)
+    vi.mocked(unlikeComment).mockResolvedValue(undefined)
 
     renderHeaderWithQuery(
       {
@@ -175,14 +171,14 @@ describe('PostComment Header', () => {
         isClosed: false,
         isMain: false,
       },
-      getGetAllCommentsFromPostApiCommentsPostIDGetQueryKey(1),
+      getGetPostCommentsQueryKey(1),
       queryFn,
     )
 
     fireEvent.click(caretAt(1))
 
     await waitFor(() =>
-      expect(unlikeCommentApiCommentsLikeDelete).toHaveBeenCalledWith({
+      expect(unlikeComment).toHaveBeenCalledWith({
         comment_id: 5,
       }),
     )

@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({
 }))
 
 vi.mock('../api/generated/endpoints', () => ({
-  useCreateNewUserApiRegisterPost: ({
+  useRegister: ({
     mutation,
   }: {
     mutation: { onError: (error: unknown) => void }

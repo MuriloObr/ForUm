@@ -2,10 +2,10 @@
 import searchIcon from '/searchSvg.svg'
 import { useContext } from 'react'
 import { SearchContext } from '../context/SearchContext'
-import { useLoggedApiLoggedGet } from '../api/generated/endpoints'
+import { useGetLoggedUser } from '../api/generated/endpoints'
 
 export function Header({ withoutSearchBar }: { withoutSearchBar?: true }) {
-  const { data } = useLoggedApiLoggedGet()
+  const { data } = useGetLoggedUser()
 
   const { search, setSearch } = useContext(SearchContext)
 

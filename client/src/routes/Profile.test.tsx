@@ -35,9 +35,9 @@ const mocks = vi.hoisted(() => ({
 }))
 
 vi.mock('../api/generated/endpoints', () => ({
-  useLoggedApiLoggedGet: () => mocks.user,
-  useGetAllPostsFromUserApiPostsUserUserIDGet: () => mocks.posts,
-  useLogoutApiLogoutPost: () => ({ mutate: vi.fn() }),
+  useGetLoggedUser: () => mocks.user,
+  useGetUserPosts: () => mocks.posts,
+  useLogout: () => ({ mutate: vi.fn() }),
 }))
 
 function renderProfile() {

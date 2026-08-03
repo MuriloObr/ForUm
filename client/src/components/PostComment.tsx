@@ -8,13 +8,13 @@ import {
   CheckFat,
 } from '@phosphor-icons/react'
 import {
-  likePostApiPostsLikePost,
-  likeCommentApiCommentsLikePost,
-  unlikePostApiPostsLikeDelete,
-  unlikeCommentApiCommentsLikeDelete,
-  getGetPostByIDApiPostsPostIDGetQueryKey,
-  getGetAllCommentsFromPostApiCommentsPostIDGetQueryKey,
-  getGetAllPostsApiPostsGetQueryKey,
+  likePost,
+  likeComment,
+  unlikePost,
+  unlikeComment,
+  getGetPostQueryKey,
+  getGetPostCommentsQueryKey,
+  getGetPostsQueryKey,
 } from '../api/generated/endpoints'
 import { useQueryClient } from '@tanstack/react-query'
 import { PostCommentProps } from '../types/typesComponents'
@@ -60,16 +60,16 @@ function Header({
 
   function refreshPostLikes() {
     queryClient.invalidateQueries({
-      queryKey: getGetPostByIDApiPostsPostIDGetQueryKey(postId),
+      queryKey: getGetPostQueryKey(postId),
     })
     queryClient.invalidateQueries({
-      queryKey: getGetAllPostsApiPostsGetQueryKey(),
+      queryKey: getGetPostsQueryKey(),
     })
   }
 
   function refreshCommentLikes() {
     queryClient.invalidateQueries({
-      queryKey: getGetAllCommentsFromPostApiCommentsPostIDGetQueryKey(postId),
+      queryKey: getGetPostCommentsQueryKey(postId),
     })
   }
 
@@ -85,10 +85,10 @@ function Header({
           onClick={async () => {
             try {
               if (isMain) {
-                await likePostApiPostsLikePost({ post_id: postId })
+                await likePost({ post_id: postId })
                 refreshPostLikes()
               } else {
-                await likeCommentApiCommentsLikePost({ comment_id: id })
+                await likeComment({ comment_id: id })
                 refreshCommentLikes()
               }
             } catch {
@@ -103,10 +103,10 @@ function Header({
           onClick={async () => {
             try {
               if (isMain) {
-                await unlikePostApiPostsLikeDelete({ post_id: postId })
+                await unlikePost({ post_id: postId })
                 refreshPostLikes()
               } else {
-                await unlikeCommentApiCommentsLikeDelete({ comment_id: id })
+                await unlikeComment({ comment_id: id })
                 refreshCommentLikes()
               }
             } catch {

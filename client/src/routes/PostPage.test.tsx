@@ -7,10 +7,10 @@ import { PostPage } from './PostPage'
 import { AnswerContext } from '../context/AnswerContext'
 import { QueryProbe, waitForIdle } from '../test/queryProbe'
 import {
-  bestCommentApiCommentsBestPut,
-  getGetPostByIDApiPostsPostIDGetQueryKey,
-  getGetAllCommentsFromPostApiCommentsPostIDGetQueryKey,
-  getGetAllPostsApiPostsGetQueryKey,
+  chooseBestComment,
+  getGetPostQueryKey,
+  getGetPostCommentsQueryKey,
+  getGetPostsQueryKey,
 } from '../api/generated/endpoints'
 import type { PostResponse } from '../api/generated/model/postResponse'
 import type { CommentResponse } from '../api/generated/model/commentResponse'
@@ -37,18 +37,14 @@ vi.mock('../api/generated/endpoints', async (importOriginal) => {
   const actual = (await importOriginal()) as Record<string, unknown>
   return {
     ...actual,
-    useGetPostByIDApiPostsPostIDGet: () => mocks.post,
-    useGetAllCommentsFromPostApiCommentsPostIDGet: () => mocks.comments,
-    useLoggedApiLoggedGet: () => mocks.profile,
-    useViewPostApiPostsViewPost: ({
-      mutation,
-    }: {
-      mutation: { onSuccess: () => void }
-    }) => {
+    useGetPost: () => mocks.post,
+    useGetPostComments: () => mocks.comments,
+    useGetLoggedUser: () => mocks.profile,
+    useViewPost: ({ mutation }: { mutation: { onSuccess: () => void } }) => {
       mocks.onViewPost = mutation.onSuccess
       return { mutate: vi.fn(), isLoading: false }
     },
-    useCreateNewCommentApiPostsCommentPost: ({
+    useCreateComment: ({
       mutation,
     }: {
       mutation: { onSuccess: () => void }
@@ -56,11 +52,11 @@ vi.mock('../api/generated/endpoints', async (importOriginal) => {
       mocks.onCreateComment = mutation.onSuccess
       return { mutate: vi.fn(), isLoading: false }
     },
-    useDeletePostApiPostsDeletePostIDDelete: () => ({
+    useDeletePost: () => ({
       mutate: vi.fn(),
       isLoading: false,
     }),
-    bestCommentApiCommentsBestPut: vi.fn(),
+    chooseBestComment: vi.fn(),
   }
 })
 
@@ -141,16 +137,11 @@ describe('PostPage', () => {
 
     const queryFn = vi.fn().mockReturnValue('feed')
     const { queryClient } = renderPage({
-      probe: (
-        <QueryProbe
-          queryKey={getGetAllPostsApiPostsGetQueryKey()}
-          queryFn={queryFn}
-        />
-      ),
+      probe: <QueryProbe queryKey={getGetPostsQueryKey()} queryFn={queryFn} />,
     })
 
     await waitFor(() => expect(queryFn).toHaveBeenCalledTimes(1))
-    await waitForIdle(queryClient, getGetAllPostsApiPostsGetQueryKey())
+    await waitForIdle(queryClient, getGetPostsQueryKey())
 
     mocks.onViewPost?.()
 
@@ -165,17 +156,14 @@ describe('PostPage', () => {
     const { queryClient } = renderPage({
       probe: (
         <QueryProbe
-          queryKey={getGetAllCommentsFromPostApiCommentsPostIDGetQueryKey(1)}
+          queryKey={getGetPostCommentsQueryKey(1)}
           queryFn={queryFn}
         />
       ),
     })
 
     await waitFor(() => expect(queryFn).toHaveBeenCalledTimes(1))
-    await waitForIdle(
-      queryClient,
-      getGetAllCommentsFromPostApiCommentsPostIDGetQueryKey(1),
-    )
+    await waitForIdle(queryClient, getGetPostCommentsQueryKey(1))
 
     mocks.onCreateComment?.()
 
@@ -186,28 +174,23 @@ describe('PostPage', () => {
     mocks.post.data = samplePost
     mocks.comments.data = [sampleComment]
     mocks.profile.data = { id: 1 }
-    vi.mocked(bestCommentApiCommentsBestPut).mockResolvedValue(samplePost)
+    vi.mocked(chooseBestComment).mockResolvedValue(samplePost)
 
     const queryFn = vi.fn().mockReturnValue('post-data')
     const { queryClient, toggleAnswerMode } = renderPage({
       answerMode: true,
-      probe: (
-        <QueryProbe
-          queryKey={getGetPostByIDApiPostsPostIDGetQueryKey(1)}
-          queryFn={queryFn}
-        />
-      ),
+      probe: <QueryProbe queryKey={getGetPostQueryKey(1)} queryFn={queryFn} />,
     })
 
     await waitFor(() => expect(queryFn).toHaveBeenCalledTimes(1))
-    await waitForIdle(queryClient, getGetPostByIDApiPostsPostIDGetQueryKey(1))
+    await waitForIdle(queryClient, getGetPostQueryKey(1))
 
     const answerButton = document.querySelector('input[type="button"]')
     expect(answerButton).not.toBeNull()
     fireEvent.click(answerButton as Element)
 
     await waitFor(() =>
-      expect(bestCommentApiCommentsBestPut).toHaveBeenCalledWith({
+      expect(chooseBestComment).toHaveBeenCalledWith({
         comment_id: 5,
         post_id: 1,
       }),

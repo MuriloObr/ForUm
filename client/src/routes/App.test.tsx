@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 import { SearchProvider } from '../context/SearchContext'
 import { App } from './App'
-import { getGetAllPostsApiPostsGetQueryKey } from '../api/generated/endpoints'
+import { getGetPostsQueryKey } from '../api/generated/endpoints'
 import { QueryProbe, waitForIdle } from '../test/queryProbe'
 import type { PostResponse } from '../api/generated/model/postResponse'
 
@@ -23,12 +23,8 @@ vi.mock('../api/generated/endpoints', async (importOriginal) => {
   const actual = (await importOriginal()) as Record<string, unknown>
   return {
     ...actual,
-    useGetAllPostsApiPostsGet: () => mocks.posts,
-    useCreateNewPostApiPostsCreatePost: ({
-      mutation,
-    }: {
-      mutation: { onSuccess: () => void }
-    }) => {
+    useGetPosts: () => mocks.posts,
+    useCreatePost: ({ mutation }: { mutation: { onSuccess: () => void } }) => {
       mocks.onCreatePost = mutation.onSuccess
       return { mutate: vi.fn(), isLoading: false }
     },
@@ -149,7 +145,7 @@ describe('App', () => {
           <SearchProvider>
             <App />
             <QueryProbe
-              queryKey={getGetAllPostsApiPostsGetQueryKey()}
+              queryKey={getGetPostsQueryKey()}
               queryFn={feedQueryFn}
             />
           </SearchProvider>
@@ -157,7 +153,7 @@ describe('App', () => {
       </MemoryRouter>,
     )
 
-    await waitForIdle(queryClient, getGetAllPostsApiPostsGetQueryKey())
+    await waitForIdle(queryClient, getGetPostsQueryKey())
     expect(feedQueryFn).toHaveBeenCalledTimes(1)
 
     mocks.onCreatePost?.()

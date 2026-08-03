@@ -2,9 +2,9 @@ import { useContext, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { SearchContext } from '../context/SearchContext.tsx'
 import {
-  useGetAllPostsApiPostsGet,
-  useCreateNewPostApiPostsCreatePost,
-  getGetAllPostsApiPostsGetQueryKey,
+  useGetPosts,
+  useCreatePost,
+  getGetPostsQueryKey,
 } from '../api/generated/endpoints'
 import { Post } from '../components/Post.tsx'
 import { Loading } from '../components/Loading'
@@ -20,7 +20,7 @@ export function App() {
     data,
     error,
     refetch,
-  } = useGetAllPostsApiPostsGet({
+  } = useGetPosts({
     query: {
       retry: 5,
       staleTime: 30 * 60 * 1000,
@@ -37,22 +37,21 @@ export function App() {
 
   const [postMessage, setPostMessage] = useState<string>('')
 
-  const { mutate, isLoading: mutateLoading } =
-    useCreateNewPostApiPostsCreatePost({
-      mutation: {
-        onSuccess: () => {
-          modalRef.current?.close()
-          queryClient.invalidateQueries({
-            queryKey: getGetAllPostsApiPostsGetQueryKey(),
-          })
-        },
-        onError: (error) => {
-          if (error.response?.status === 401) {
-            setPostMessage('Você precisa estar logado para postar!')
-          }
-        },
+  const { mutate, isLoading: mutateLoading } = useCreatePost({
+    mutation: {
+      onSuccess: () => {
+        modalRef.current?.close()
+        queryClient.invalidateQueries({
+          queryKey: getGetPostsQueryKey(),
+        })
       },
-    })
+      onError: (error) => {
+        if (error.response?.status === 401) {
+          setPostMessage('Você precisa estar logado para postar!')
+        }
+      },
+    },
+  })
 
   const filteredPosts =
     search.length > 0

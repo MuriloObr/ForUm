@@ -1,11 +1,11 @@
 import * as Popover from '@radix-ui/react-popover'
 import { GearSix, X } from '@phosphor-icons/react'
 import {
-  useDeletePostApiPostsDeletePostIDDelete,
-  closeOpenPostApiPostsClosedPut,
-  getGetPostByIDApiPostsPostIDGetQueryKey,
-  getGetAllPostsApiPostsGetQueryKey,
-  getGetAllPostsFromUserApiPostsUserUserIDGetQueryKey,
+  useDeletePost,
+  togglePostClosed,
+  getGetPostQueryKey,
+  getGetPostsQueryKey,
+  getGetUserPostsQueryKey,
 } from '../../api/generated/endpoints'
 import { useQueryClient } from '@tanstack/react-query'
 import { useContext, useRef, useState } from 'react'
@@ -24,38 +24,36 @@ export function ConfigButton({ id, closed, name, userID }: ConfigProps) {
   const modalFieldRef = useRef<HTMLInputElement>(null)
   const [statusMessage, setStatusMessage] = useState('')
 
-  const { mutate, isLoading: mutateLoading } =
-    useDeletePostApiPostsDeletePostIDDelete({
-      mutation: {
-        onSuccess: () => {
+  const { mutate, isLoading: mutateLoading } = useDeletePost({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: getGetPostQueryKey(id),
+        })
+        queryClient.invalidateQueries({
+          queryKey: getGetPostsQueryKey(),
+        })
+        if (userID !== undefined) {
           queryClient.invalidateQueries({
-            queryKey: getGetPostByIDApiPostsPostIDGetQueryKey(id),
+            queryKey: getGetUserPostsQueryKey(userID),
           })
-          queryClient.invalidateQueries({
-            queryKey: getGetAllPostsApiPostsGetQueryKey(),
-          })
-          if (userID !== undefined) {
-            queryClient.invalidateQueries({
-              queryKey:
-                getGetAllPostsFromUserApiPostsUserUserIDGetQueryKey(userID),
-            })
-          }
-          navigate('/profile')
-        },
-        onError: () => {
-          setStatusMessage(`Algo deu errado, ou voce não está logado!`)
-        },
+        }
+        navigate('/profile')
       },
-    })
+      onError: () => {
+        setStatusMessage(`Algo deu errado, ou voce não está logado!`)
+      },
+    },
+  })
 
   async function toggleClosed() {
     try {
-      await closeOpenPostApiPostsClosedPut({ post_id: id })
+      await togglePostClosed({ post_id: id })
       queryClient.invalidateQueries({
-        queryKey: getGetPostByIDApiPostsPostIDGetQueryKey(id),
+        queryKey: getGetPostQueryKey(id),
       })
       queryClient.invalidateQueries({
-        queryKey: getGetAllPostsApiPostsGetQueryKey(),
+        queryKey: getGetPostsQueryKey(),
       })
     } catch {
       // error handled silently

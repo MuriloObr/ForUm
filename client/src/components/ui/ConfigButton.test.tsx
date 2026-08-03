@@ -7,10 +7,10 @@ import { ConfigButton } from './ConfigButton'
 import { AnswerContext } from '../../context/AnswerContext'
 import { QueryProbe, waitForIdle } from '../../test/queryProbe'
 import {
-  closeOpenPostApiPostsClosedPut,
-  getGetPostByIDApiPostsPostIDGetQueryKey,
-  getGetAllPostsApiPostsGetQueryKey,
-  getGetAllPostsFromUserApiPostsUserUserIDGetQueryKey,
+  togglePostClosed,
+  getGetPostQueryKey,
+  getGetPostsQueryKey,
+  getGetUserPostsQueryKey,
 } from '../../api/generated/endpoints'
 import type { PostResponse } from '../../api/generated/model/postResponse'
 
@@ -44,15 +44,11 @@ vi.mock('../../api/generated/endpoints', async (importOriginal) => {
   const actual = (await importOriginal()) as Record<string, unknown>
   return {
     ...actual,
-    useDeletePostApiPostsDeletePostIDDelete: ({
-      mutation,
-    }: {
-      mutation: { onSuccess: () => void }
-    }) => {
+    useDeletePost: ({ mutation }: { mutation: { onSuccess: () => void } }) => {
       mocks.onDelete = mutation.onSuccess
       return { mutate: vi.fn(), isLoading: false }
     },
-    closeOpenPostApiPostsClosedPut: vi.fn(),
+    togglePostClosed: vi.fn(),
   }
 })
 
@@ -94,12 +90,9 @@ describe('ConfigButton', () => {
     const { queryClient } = renderConfig({
       probe: (
         <>
+          <QueryProbe queryKey={getGetPostsQueryKey()} queryFn={feedQueryFn} />
           <QueryProbe
-            queryKey={getGetAllPostsApiPostsGetQueryKey()}
-            queryFn={feedQueryFn}
-          />
-          <QueryProbe
-            queryKey={getGetAllPostsFromUserApiPostsUserUserIDGetQueryKey(7)}
+            queryKey={getGetUserPostsQueryKey(7)}
             queryFn={userPostsQueryFn}
           />
         </>
@@ -107,11 +100,8 @@ describe('ConfigButton', () => {
     })
 
     await waitFor(() => expect(feedQueryFn).toHaveBeenCalledTimes(1))
-    await waitForIdle(queryClient, getGetAllPostsApiPostsGetQueryKey())
-    await waitForIdle(
-      queryClient,
-      getGetAllPostsFromUserApiPostsUserUserIDGetQueryKey(7),
-    )
+    await waitForIdle(queryClient, getGetPostsQueryKey())
+    await waitForIdle(queryClient, getGetUserPostsQueryKey(7))
 
     mocks.onDelete?.()
 
@@ -121,27 +111,22 @@ describe('ConfigButton', () => {
   })
 
   it('refreshes the post after closing or reopening it', async () => {
-    vi.mocked(closeOpenPostApiPostsClosedPut).mockResolvedValue(samplePost)
+    vi.mocked(togglePostClosed).mockResolvedValue(samplePost)
 
     const queryFn = vi.fn().mockReturnValue('post-data')
     const { queryClient } = renderConfig({
-      probe: (
-        <QueryProbe
-          queryKey={getGetPostByIDApiPostsPostIDGetQueryKey(7)}
-          queryFn={queryFn}
-        />
-      ),
+      probe: <QueryProbe queryKey={getGetPostQueryKey(7)} queryFn={queryFn} />,
     })
 
     await waitFor(() => expect(queryFn).toHaveBeenCalledTimes(1))
-    await waitForIdle(queryClient, getGetPostByIDApiPostsPostIDGetQueryKey(7))
+    await waitForIdle(queryClient, getGetPostQueryKey(7))
 
     fireEvent.click(screen.getByRole('button'))
     await waitFor(() => screen.getByText('Mark as Closed'))
     fireEvent.click(screen.getByText('Mark as Closed'))
 
     await waitFor(() =>
-      expect(closeOpenPostApiPostsClosedPut).toHaveBeenCalledWith({
+      expect(togglePostClosed).toHaveBeenCalledWith({
         post_id: 7,
       }),
     )

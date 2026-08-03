@@ -16,7 +16,7 @@ vi.mock('react-router-dom', async (importOriginal) => {
 })
 
 vi.mock('../api/generated/endpoints', () => ({
-  useLoggedApiLoggedGet: () => ({ data: undefined }),
+  useGetLoggedUser: () => ({ data: undefined }),
 }))
 
 function renderErrorPage() {

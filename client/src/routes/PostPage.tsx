@@ -7,15 +7,15 @@ import { AddButton } from '../components/ui/AddButton'
 import { Modal } from '../components/Modal'
 import { useContext, useEffect, useRef, useState } from 'react'
 import {
-  useGetPostByIDApiPostsPostIDGet,
-  useGetAllCommentsFromPostApiCommentsPostIDGet,
-  useLoggedApiLoggedGet,
-  useCreateNewCommentApiPostsCommentPost,
-  useViewPostApiPostsViewPost,
-  bestCommentApiCommentsBestPut,
-  getGetPostByIDApiPostsPostIDGetQueryKey,
-  getGetAllCommentsFromPostApiCommentsPostIDGetQueryKey,
-  getGetAllPostsApiPostsGetQueryKey,
+  useGetPost,
+  useGetPostComments,
+  useGetLoggedUser,
+  useCreateComment,
+  useViewPost,
+  chooseBestComment,
+  getGetPostQueryKey,
+  getGetPostCommentsQueryKey,
+  getGetPostsQueryKey,
 } from '../api/generated/endpoints'
 import { ArrowFatLinesRight } from '@phosphor-icons/react'
 import { ConfigButton } from '../components/ui/ConfigButton'
@@ -33,23 +33,20 @@ export function PostPage() {
     data: post,
     error,
     refetch,
-  } = useGetPostByIDApiPostsPostIDGet(postId, {
+  } = useGetPost(postId, {
     query: {
       staleTime: 15 * 60 * 1000,
     },
   })
 
-  const { data: comments } = useGetAllCommentsFromPostApiCommentsPostIDGet(
-    postId,
-    {
-      query: {
-        enabled: !!post,
-        retry: false,
-      },
+  const { data: comments } = useGetPostComments(postId, {
+    query: {
+      enabled: !!post,
+      retry: false,
     },
-  )
+  })
 
-  const { data: profile } = useLoggedApiLoggedGet()
+  const { data: profile } = useGetLoggedUser()
 
   const [isOwner, setIsOwner] = useState<boolean>(false)
   const { answerMode, toggleAnswerMode } = useContext(AnswerContext)
@@ -59,11 +56,11 @@ export function PostPage() {
   const [postHtml, setPostHtml] = useState<string>('')
   const [commentHtmlList, setCommentHtmlList] = useState<string[]>([])
 
-  const { mutate: viewPost } = useViewPostApiPostsViewPost({
+  const { mutate: viewPost } = useViewPost({
     mutation: {
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: getGetAllPostsApiPostsGetQueryKey(),
+          queryKey: getGetPostsQueryKey(),
         })
       },
     },
@@ -105,33 +102,31 @@ export function PostPage() {
 
   const [commentMessage, setCommentMessage] = useState<string>('')
 
-  const { mutate, isLoading: mutateLoading } =
-    useCreateNewCommentApiPostsCommentPost({
-      mutation: {
-        onSuccess: () => {
-          modalRef.current?.close()
-          queryClient.invalidateQueries({
-            queryKey:
-              getGetAllCommentsFromPostApiCommentsPostIDGetQueryKey(postId),
-          })
-        },
-        onError: (error) => {
-          if (error.response?.status === 401) {
-            setCommentMessage('Você precisa estar logado para comentar!')
-          }
-        },
+  const { mutate, isLoading: mutateLoading } = useCreateComment({
+    mutation: {
+      onSuccess: () => {
+        modalRef.current?.close()
+        queryClient.invalidateQueries({
+          queryKey: getGetPostCommentsQueryKey(postId),
+        })
       },
-    })
+      onError: (error) => {
+        if (error.response?.status === 401) {
+          setCommentMessage('Você precisa estar logado para comentar!')
+        }
+      },
+    },
+  })
 
   async function markAsBestAnswer(id: number) {
     try {
-      await bestCommentApiCommentsBestPut({
+      await chooseBestComment({
         comment_id: id,
         post_id: postId,
       })
       toggleAnswerMode()
       queryClient.invalidateQueries({
-        queryKey: getGetPostByIDApiPostsPostIDGetQueryKey(postId),
+        queryKey: getGetPostQueryKey(postId),
       })
     } catch {
       // error handled silently

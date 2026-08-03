@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { AxiosError } from 'axios'
 import { Form } from '../components/Form'
-import { useLoginApiLoginPost } from '../api/generated/endpoints'
+import { useLogin } from '../api/generated/endpoints'
 import { useNavigate } from 'react-router-dom'
 import { Question } from '@phosphor-icons/react'
 import { MyHoverCard } from '../components/ui/MyHoverCard'
@@ -16,7 +16,7 @@ export function Login() {
     colorClass: 'white',
   })
 
-  const { mutate, isLoading } = useLoginApiLoginPost({
+  const { mutate, isLoading } = useLogin({
     mutation: {
       onSuccess: () => navigate('/profile'),
       onError: (error) => {

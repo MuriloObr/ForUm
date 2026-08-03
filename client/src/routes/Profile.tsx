@@ -1,7 +1,7 @@
 import {
-  useLoggedApiLoggedGet,
-  useGetAllPostsFromUserApiPostsUserUserIDGet,
-  useLogoutApiLogoutPost,
+  useGetLoggedUser,
+  useGetUserPosts,
+  useLogout,
 } from '../api/generated/endpoints'
 import { UserComponent } from '../components/UserComponent'
 import { Loading } from '../components/Loading'
@@ -17,25 +17,22 @@ export function Profile() {
     data: user,
     error,
     refetch,
-  } = useLoggedApiLoggedGet({
+  } = useGetLoggedUser({
     query: {
       retry: 1,
       refetchOnWindowFocus: false,
     },
   })
 
-  const { data: posts } = useGetAllPostsFromUserApiPostsUserUserIDGet(
-    user?.id ?? 0,
-    {
-      query: {
-        enabled: user?.id !== undefined,
-      },
+  const { data: posts } = useGetUserPosts(user?.id ?? 0, {
+    query: {
+      enabled: user?.id !== undefined,
     },
-  )
+  })
 
   const navigate = useNavigate()
 
-  const { mutate: logout } = useLogoutApiLogoutPost({
+  const { mutate: logout } = useLogout({
     mutation: {
       onSuccess: () => navigate('/'),
     },
