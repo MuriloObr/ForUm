@@ -4,6 +4,9 @@ export interface AddButtonProps {
   text: string
   onClick: MouseEventHandler<HTMLButtonElement>
   className?: string
+  tone?: 'action' | 'danger'
+  position?: 'fab' | 'inline'
+  disabled?: boolean
 }
 
 export type AddModalProps = {
@@ -12,6 +15,8 @@ export type AddModalProps = {
     onSubmit: MouseEventHandler
     submitLabel: string
     message: string
+    tone?: 'action' | 'danger'
+    disabled?: boolean
   }
   field: {
     type: string

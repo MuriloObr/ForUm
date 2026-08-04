@@ -105,6 +105,8 @@ export function ConfigButton({ id, closed, name, userID }: ConfigProps) {
               mutate({ postID: id })
             }}
             submitLabel="Deletar"
+            tone="danger"
+            disabled={mutateLoading}
           >
             <Modal.Field
               ref={modalFieldRef}

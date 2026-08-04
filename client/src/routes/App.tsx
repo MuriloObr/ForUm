@@ -126,14 +126,15 @@ export function App() {
           )
         )}
         <AddButton
-          text="+ Post"
-          className="mr-10"
+          text="+ Postar"
+          position="fab"
           onClick={() => modalRef.current?.showModal()}
         />
         <Modal.Root
           ref={modalRef}
           message={postMessage}
           submitLabel="Postar"
+          disabled={mutateLoading}
           onSubmit={() =>
             mutate({
               data: {

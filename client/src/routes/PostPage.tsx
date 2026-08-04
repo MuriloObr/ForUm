@@ -218,14 +218,15 @@ export function PostPage() {
           </>
         )}
         <AddButton
-          text="+ Comment"
-          className="right-0 mr-10"
+          text="+ Comentar"
+          position="fab"
           onClick={() => modalRef.current?.showModal()}
         />
         <Modal.Root
           ref={modalRef}
           message={commentMessage}
           submitLabel="Comentar"
+          disabled={mutateLoading}
           onSubmit={() =>
             mutate({
               data: {

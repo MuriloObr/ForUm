@@ -3,7 +3,10 @@ import { AddModalProps } from '@mytypes/typesComponents'
 import { AddButton } from '@components/ui/AddButton'
 
 export const ModalRoot = forwardRef<HTMLDialogElement, AddModalProps['root']>(
-  function Root({ children, onSubmit, submitLabel, message }, ref) {
+  function Root(
+    { children, onSubmit, submitLabel, message, tone, disabled },
+    ref,
+  ) {
     return (
       <dialog ref={ref} className="w-1/3 rounded-md backdrop:bg-slate-900/80">
         <div className="flex flex-col gap-5 p-8 rounded-md bg-white">
@@ -11,8 +14,10 @@ export const ModalRoot = forwardRef<HTMLDialogElement, AddModalProps['root']>(
           <span className="h-5 text-red-700">{message}</span>
           <AddButton
             text={submitLabel}
+            tone={tone}
+            disabled={disabled}
             onClick={onSubmit}
-            className="bottom-0 mr-0"
+            className="ml-auto"
           />
         </div>
       </dialog>

@@ -11,7 +11,7 @@ colors:
   border-strong: "#09090b"
   color-success: "#10b981"
   color-open: "#9333ea"
-  color-action: "#3b82f6"
+  color-action: "#1d4ed8"
   color-register: "#f97316"
   color-danger: "#dc2626"
   color-engagement: "#f59e0b"
@@ -123,9 +123,9 @@ The palette follows a "Neutral Canvas, Colorful Content" philosophy. Backgrounds
 
 ### Status Colors
 
-- **Success Green** (#10b981 / emerald-500): Closed posts, add/compose buttons, affirmative status. Represents resolution and action.
+- **Success Green** (#10b981 / emerald-500): Closed posts and affirmative status. Represents resolution.
 - **Open Purple** (#9333ea / purple-600): Open posts. Complements the green without implying right/wrong.
-- **Action Blue** (#3b82f6 / blue-500): Login button, markdown hyperlinks. Standard interactive signal.
+- **Action Blue** (#1d4ed8 / blue-700): Login button, add/compose buttons, markdown hyperlinks. The standard signal for "do this now."
 - **Register Orange** (#f97316 / orange-500): Register button. Distinct from login to prevent confusion.
 - **Danger Red** (#dc2626 / red-600): Delete actions, destructive confirmation.
 
@@ -233,14 +233,14 @@ The dominant corner radius is `rounded-md` (6px). This applies to cards, buttons
 ### Buttons
 
 - **Shape:** Gently curved (rounded-md / 6px)
-- **Primary (Add / Compose):** Background Success Green (#10b981), white text, font-bold, text-lg. Padding: py-2 px-4. Positioned sticky bottom-8 ml-auto.
-- **Login:** Background Action Blue (#3b82f6), white text, font-bold. Rounded left in a pair (rounded-l-lg) with 2px black border.
+- **AddButton:** The shared compose/submit button. Two tones via a `tone` prop: **action** (Action Blue #1d4ed8, blue-700) for compose/submit, **danger** (Danger Red #dc2626, red-600) for destructive confirms. White text, font-bold, text-lg, padding py-2 px-4, rounded-md. Two roles via a `position` prop: **fab** (floating, `sticky bottom-8 ml-auto`) and **inline** (in-flow; modal submits right-align via `ml-auto` at the call site).
+- **Login:** Background Action Blue (#1d4ed8), white text, font-bold. Rounded left in a pair (rounded-l-lg) with 2px black border.
 - **Register:** Background Register Orange (#f97316), white text, font-bold. Rounded right in a pair (rounded-r-lg) with 2px black border.
 - **Danger (Delete):** Background Danger Red (#dc2626), white text, hover:brightness-90. Used in config popover.
 - **Config (Close/Open):** Filled rounded-md button, background matches status (Success Green for closed, Open Purple for open), hover:brightness-90.
 - **Config (Answer toggle):** Background slate-800 (active) or slate-600 (inactive), rounded-md.
 - **Ghost (Form submit):** No background, uses the underline-scale animation (after/before pseudo-elements on the parent button).
-- **State change:** All colored buttons use `hover:brightness-90` for hover feedback — no shadow, no scale, just a consistent lightness shift.
+- **State change:** All colored buttons use `hover:brightness-90` for hover feedback — no shadow, no scale, just a consistent lightness shift. Disabled buttons render at 50% opacity with pointer events off. Focus uses a 2px offset outline: `outline-slate-900` on light surfaces, `outline-zinc-400` on the slate feed.
 
 ### Cards / Post Containers
 
