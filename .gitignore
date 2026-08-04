@@ -29,9 +29,8 @@ dist-ssr/
 # Environment
 .env
 
-# Client (Orval output, Storybook)
+# Client (Orval output)
 client/src/api/generated
-*storybook.log
 
 # Agent tooling
 .opencode/
