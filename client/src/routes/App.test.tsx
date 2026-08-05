@@ -115,6 +115,21 @@ describe('App', () => {
     expect(screen.getByText('10')).toBeInTheDocument()
   })
 
+  it('renders skeleton loaders while the feed loads', () => {
+    mocks.posts = {
+      isLoading: true,
+      isError: false,
+      data: undefined,
+      error: undefined,
+    }
+
+    renderApp()
+
+    expect(
+      screen.getByRole('status', { name: 'Carregando posts...' }),
+    ).toBeInTheDocument()
+  })
+
   it('renders the empty fallback when there are no posts', () => {
     mocks.posts = {
       isLoading: false,

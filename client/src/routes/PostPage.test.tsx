@@ -199,8 +199,22 @@ describe('PostPage', () => {
     await waitFor(() => expect(queryFn).toHaveBeenCalledTimes(2))
   })
 
+  it('renders skeleton loaders while the post loads', () => {
+    mocks.post.isLoading = true
+    mocks.post.isError = false
+    mocks.post.data = undefined
+    mocks.post.error = undefined
+
+    renderPage()
+
+    expect(
+      screen.getByRole('status', { name: 'Carregando post...' }),
+    ).toBeInTheDocument()
+  })
+
   it('renders the error fallback when the request fails', () => {
     mocks.post.data = undefined
+    mocks.post.isLoading = false
     mocks.post.isError = true
     mocks.post.error = new Error('boom')
 

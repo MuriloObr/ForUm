@@ -7,7 +7,7 @@ import {
   getGetPostsQueryKey,
 } from '../api/generated/endpoints'
 import { Post } from '../components/Post.tsx'
-import { Loading } from '../components/Loading'
+import { PostSkeleton } from '../components/Skeletons'
 import { Error } from '../components/Error'
 import { AddButton } from '../components/ui/AddButton'
 import { Modal } from '../components/Modal'
@@ -67,7 +67,19 @@ export function App() {
   const previewContent = (content: string) => content.replace(/^#+\s?/gm, '')
 
   if (dataLoading) {
-    return <Loading />
+    return (
+      <main className="w-full p-5 bg-slate-800 flex-1">
+        <div
+          role="status"
+          aria-label="Carregando posts..."
+          className="h-fit flex flex-col gap-5"
+        >
+          {Array.from({ length: 5 }).map((_, index) => (
+            <PostSkeleton key={index} />
+          ))}
+        </div>
+      </main>
+    )
   }
   if (isError) {
     return <Error error={error} onRetry={refetch} />

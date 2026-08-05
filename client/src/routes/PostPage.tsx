@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { PostComment } from '../components/PostComment'
-import { Loading } from '../components/Loading'
+import { CommentSkeleton } from '../components/Skeletons'
 import { Error } from '../components/Error'
 import { AddButton } from '../components/ui/AddButton'
 import { Modal } from '../components/Modal'
@@ -137,7 +137,20 @@ export function PostPage() {
   }
 
   if (isLoading) {
-    return <Loading />
+    return (
+      <main className="w-full p-5 bg-slate-800 flex-1">
+        <div
+          role="status"
+          aria-label="Carregando post..."
+          className="h-fit flex flex-col"
+        >
+          <CommentSkeleton isMain />
+          {Array.from({ length: 3 }).map((_, index) => (
+            <CommentSkeleton key={index} />
+          ))}
+        </div>
+      </main>
+    )
   }
   if (isError) {
     return <Error error={error} onRetry={refetch} />

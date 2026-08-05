@@ -54,6 +54,11 @@ spacing:
   md: "16px"
   lg: "20px"
   xl: "32px"
+motion:
+  skeleton:
+    duration: "1.8s"
+    gradient: "rgba(255, 255, 255, 0.1)"
+    base: "rgba(255, 255, 255, 0.08)"
 components:
   button-primary:
     backgroundColor: "{colors.color-action}"
@@ -305,8 +310,8 @@ The dominant corner radius is `rounded-md` (6px). This applies to cards, buttons
 
 ### Loading States
 
-- **Page loading:** Centered CircleNotch icon (100px), text-zinc-500 (visible on both the slate feed and near-white form pages), animate-spin, on the current background
-- **Submit loading:** Full-screen overlay (bg-white/75), centered CircleNotch icon (80px), z-50
+- **Page loading:** Skeleton cards that mirror the real card geometry 1:1 so the page does not shift when data arrives — the feed shows 5 PostSkeletons (w-3/4 cards), the post page shows 1 main + 3 comment skeletons (w-5/6 cards), the profile shows 3 PostSkeletons. Each block is a `.shimmer` (base `rgba(255,255,255,0.08)`, rounded-md) with a white gradient sweep (`1.8s`) that respects `prefers-reduced-motion`. Announced via `role="status"` + an `aria-label` Portuguese label ("Carregando posts..."). No spinner, no centered loader — the page chrome stays in place.
+- **Submit loading:** Full-screen overlay (bg-white/75), centered CircleNotch icon (80px), z-50 — used only for in-flight mutations (login, register, post, comment, delete).
 
 ### Chips / Tags / Hover Card
 

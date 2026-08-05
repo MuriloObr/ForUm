@@ -4,7 +4,7 @@ import {
   useLogout,
 } from '../api/generated/endpoints'
 import { UserComponent } from '../components/UserComponent'
-import { Loading } from '../components/Loading'
+import { PostSkeleton } from '../components/Skeletons'
 import { Error } from '../components/Error'
 import { SignOut } from '@phosphor-icons/react'
 import { Post } from '../components/Post'
@@ -39,7 +39,19 @@ export function Profile() {
   })
 
   if (isLoading) {
-    return <Loading />
+    return (
+      <main className="w-full bg-slate-800 flex-1">
+        <div
+          role="status"
+          aria-label="Carregando perfil..."
+          className="p-8 flex flex-col items-center gap-5"
+        >
+          {Array.from({ length: 3 }).map((_, index) => (
+            <PostSkeleton key={index} />
+          ))}
+        </div>
+      </main>
+    )
   }
 
   if (isError) {
