@@ -3,7 +3,8 @@ name: ForUm
 description: A lightweight, conversational forum
 colors:
   background-surface: "#1e293b"
-  background-card: "#ffffff"
+  background-card: "#0f172a"
+  background-modal: "#ffffff"
   text-primary: "#18181b"
   text-muted: "#3f3f46"
   text-on-dark: "#ffffff"
@@ -14,8 +15,8 @@ colors:
   color-action: "#1d4ed8"
   color-register: "#f97316"
   color-danger: "#dc2626"
-  color-engagement: "#f59e0b"
-  color-like: "#f43f5e"
+  color-engagement: "#fbbf24"
+  color-like: "#fb7185"
   overlay: "rgba(15, 23, 42, 0.8)"
 typography:
   display:
@@ -92,15 +93,15 @@ components:
 
 **Creative North Star: "The Conversation Table"**
 
-ForUm's design is built around the feeling of a well-worn table where people gather to share ideas. The interface is clean and purposeful — spacious, high-contrast, and deliberately quiet so the conversation itself fills the room. Cards sit on a slate surface like paper scattered across a tabletop, gently lifted to suggest they can be picked up and engaged with. Every element either serves reading, writing, or navigating the discussion; chrome exists only to make those actions feel tactile and dependable.
+ForUm's design is built around the feeling of a well-worn table where people gather to share ideas. The interface is clean and purposeful — spacious, high-contrast, and deliberately quiet so the conversation itself fills the room. Cards sit on the slate surface like panels that can be picked up and engaged with. Every element either serves reading, writing, or navigating the discussion; chrome exists only to make those actions feel tactile and dependable.
 
-The palette stays neutral (slate backgrounds, white cards, zinc text) so that the status badges, interactive buttons, and user-generated markdown content become the color moments. This is not a brand that needs to shout — it's a table that welcomes anyone to sit down and write.
+The palette stays neutral (slate backgrounds, slate-900 cards with hairline white borders, zinc text) so that the status badges, interactive buttons, and user-generated markdown content become the color moments. This is not a brand that needs to shout — it's a table that welcomes anyone to sit down and write.
 
 **Key Characteristics:**
 - Neutral canvas with deliberate color accents for functional feedback
-- Cards always gently lifted; hover deepens the elevation
+- Cards sit a half-step down from the surface (slate-900 on slate-800) and are defined by a hairline border; hover brightens the border
 - Tactile, bold interactive states — buttons feel clickable, fields feel editable
-- High contrast between surface zones (slate feed / white cards)
+- Dark first: the feed, post page, header, and all cards live on the slate scale; white is reserved for modals and the light auth surfaces
 - Spacious internal rhythms (16–20px padding on containers)
 - Underlined navigation links with a scale-in animation on hover
 
@@ -111,19 +112,21 @@ The palette follows a "Neutral Canvas, Colorful Content" philosophy. Backgrounds
 ### Primary
 
 - **Background Surface** (#1e293b / slate-800): The feed and post-page background. This deep slate creates the tabletop surface that content cards sit on.
-- **Background Card** (#ffffff / white): Card, modal, and container fills. Pure white keeps content legible and creates clear figure-ground separation from the slate surface.
+- **Background Card** (#0f172a / slate-900): Feed cards, comment cards, empty states, and error cards on dark surfaces. One half-step darker than the surface, defined by a hairline `border-white/10`.
+- **Background Modal** (#ffffff / white): Modal dialogs and form containers. The one deliberately lit surface — a modal is the only white moment on the dark tabletop.
 - **Overlay** (rgba(15, 23, 42, 0.8) / slate-900 at 80%): Modal backdrops. Dims the tabletop without fully extinguishing it.
 
 ### Secondary
 
 - **Background Form** (#fafafa): The page-level background for login/register/about/profile pages. Near-white with a hint of warmth.
-- **Text Primary** (#18181b / zinc-900): Body text, headings, and labels on light backgrounds.
-- **Text Muted** (#3f3f46 / zinc-700): Secondary text like dates and metadata.
+- **Text Primary** (#18181b / zinc-900): Body text, headings, and labels on light surfaces (auth forms, modals).
+- **Text On Card** (#e4e4e7 / zinc-200): Body text on slate-900 cards (titles zinc-100, secondary zinc-400).
+- **Text Muted** (#a1a1aa / zinc-400): Secondary text like dates and metadata on dark surfaces.
 - **Text On Dark** (#ffffff / white): Text and icons on colored or dark backgrounds.
 
 ### Status Colors
 
-- **Success Green** (#10b981 / emerald-500): Closed posts and affirmative status. Represents resolution.
+- **Success Green** (#10b981 / emerald-500): Closed posts and affirmative status. Represents resolution. On feed cards the Closed badge uses the darker **emerald-700** (#047857) so white text clears WCAG AA.
 - **Open Purple** (#9333ea / purple-600): Open posts. Complements the green without implying right/wrong.
 - **Action Blue** (#1d4ed8 / blue-700): Login button, add/compose buttons, markdown hyperlinks. The standard signal for "do this now."
 - **Register Orange** (#f97316 / orange-500): Register button. Distinct from login to prevent confusion.
@@ -131,9 +134,9 @@ The palette follows a "Neutral Canvas, Colorful Content" philosophy. Backgrounds
 
 ### Engagement Colors
 
-- **Engagement Amber** (#f59e0b / amber-500): Like/engagement ratio metric. Warm, energetic.
-- **Like Rose** (#f43f5e / rose-500): Like count. Slightly warmer than pure red to feel positive.
-- **Views Blue** (#3b82f6 / blue-500): View count. Calm, informational.
+- **Engagement Amber** (#fbbf24 / amber-400): Like/engagement ratio metric. Warm, energetic; brightened for WCAG AA on slate-900 cards.
+- **Like Rose** (#fb7185 / rose-400): Like count. Slightly warmer than pure red to feel positive; brightened for WCAG AA on slate-900 cards.
+- **Views Blue** (#60a5fa / blue-400): View count. Calm, informational; brightened for WCAG AA on slate-900 cards.
 
 ### Border
 
@@ -198,18 +201,18 @@ ForUm uses a single-column content layout centered on the viewport. The feed is 
 
 ## Elevation & Depth
 
-Cards are always gently lifted. At rest, each card carries `shadow-md` — enough to feel like a separate sheet on the slate tabletop without floating. On hover, cards elevate to `shadow-xl hover:shadow-slate-950`, creating a clear visual response that signals interactivity.
+Dark cards separate from the surface by tone and a hairline border, not by shadow. At rest, a card is `bg-slate-900 border border-white/10` — one half-step below the slate-800 surface, its edge catching the light. On hover the border brightens to `border-white/25`, a quiet cue that the panel can be picked up.
 
 **Depth strategy:**
-- Rest: `shadow-md shadow-slate-950` — soft, present, unobtrusive
-- Hover: `shadow-xl hover:shadow-slate-950` — pronounced lift, explicitly cued
-- Modal: `backdrop:bg-slate-900/80` overlay — the tabletop dims, the modal is the only lit surface
-- No elevation tokens beyond shadows; the system is flat by default with shadow-only depth
+- Rest: `bg-slate-900 border border-white/10` — defined by edge, not elevation
+- Hover: `hover:border-white/25` — the edge brightens to signal interactivity
+- Modal: `backdrop:bg-slate-900/80` overlay — the tabletop dims, the modal is the only lit (white) surface
+- No shadows on dark surfaces — they are invisible against slate; the hairline border is the depth system
 - Buttons do not use shadows; they rely on background color and hover brightness for their state change
 
 ### Named Rules
 
-**The Lifted-At-Rest Rule.** Cards always carry a shadow. The baseline elevation is not zero — content surfaces that can be interacted with are always visually lifted from the background.
+**The Bordered-Edge Rule.** Dark cards are defined by their hairline border (`border-white/10`), never by shadow. The baseline edge is never zero — interactive content surfaces always carry a visible boundary against the slate surface.
 
 ## Shapes
 
@@ -222,10 +225,10 @@ The dominant corner radius is `rounded-md` (6px). This applies to cards, buttons
 - No radius (`rounded-none` / border-b-2): Form input fields — they use an underline style rather than a box
 
 **Borders:**
+- Cards: `border border-white/10` — the hairline edge that defines dark surfaces; brightens to `white/25` on hover
 - Header: `border-b-2 border-zinc-200` — a single subtle line separating the header from content
 - Status buttons: `border-2 border-black` — prominent outline on login/register pair
 - Form inputs: `border-b-2 border-black` — underline style, no box
-- Cards: no borders, only shadow for container definition
 - Hover card: `border border-black/40` — subtle boundary on the floating Radix popover
 
 ## Components
@@ -245,13 +248,15 @@ The dominant corner radius is `rounded-md` (6px). This applies to cards, buttons
 ### Cards / Post Containers
 
 - **Corner Style:** Gently curved (rounded-md / 6px)
-- **Background:** Pure white (#ffffff)
-- **Shadow at Rest:** shadow-md shadow-slate-950
-- **Shadow on Hover:** shadow-xl hover:shadow-slate-950 — also uses `hover:cursor-pointer`
+- **Background:** slate-900 (#0f172a), text-zinc-200 — a half-step down from the slate-800 feed
+- **Edge at Rest:** `border border-white/10`
+- **Edge on Hover:** `hover:border-white/25` (cards are links; the border brightens instead of a shadow)
 - **Internal Padding:** 20px (p-5)
 - **Layout:** Flex column with gap-y-4 between header, content, and footer
 - **Transition:** `transition-all` on the whole card
 - **Group hover:** Title underline appears on card hover via `group-hover/post:underline`
+- **Navigation:** The card is a router `<Link>` (`to=/username/postID`, username URI-encoded), not a raw `<a>` — SPA navigation preserves feed scroll position
+- **Focus:** 2px offset outline, `focus-visible:outline-zinc-400` on the dark card surface
 
 ### Inputs / Text Fields
 
@@ -284,21 +289,23 @@ The dominant corner radius is `rounded-md` (6px). This applies to cards, buttons
 ### Status Badges
 
 - **Shape:** rounded-md, p-1
-- **Closed:** Background Success Green (#10b981), white text, bold, with X icon
+- **Closed:** Background emerald-700 (#047857, AA-safe with white text), bold, with X icon
 - **Open:** Background Open Purple (#9333ea), white text, bold, with Check icon
 - **Placement:** Top-right of the post header, ml-auto
+- **Labels:** Portuguese — "Fechado" / "Aberto"
 
 ### Engagement Indicators
 
-- **Layout:** Horizontal row (flex justify-between) in the card footer
-- **Engagement ratio:** Amber text (#f59e0b), Target icon — displays like/dislike ratio as percentage
-- **Views:** Blue text (#3b82f6), TrendUp icon — number with k/M abbreviation
-- **Likes:** Rose text (#f43f5e), ThumbsUp icon — number with k/M abbreviation
-- **Metadata:** Nickname left (text-sm), date right (text-zinc-700 text-sm)
+- **Layout:** Two groups on one row (flex justify-between, flex-wrap) — the three colored metrics grouped left, a single muted "nickname · relative date" meta group right
+- **Engagement ratio:** Amber-400 text (#fbbf24, WCAG AA on slate-900), Target icon (aria-hidden), `title` tooltip "Proporção de curtidas por visualização" — displays likes/views as percentage; renders 0% when there are no views
+- **Views:** Blue-400 text (#60a5fa, WCAG AA on slate-900), TrendUp icon (aria-hidden) — number with k/M abbreviation
+- **Likes:** Rose-400 text (#fb7185, WCAG AA on slate-900), ThumbsUp icon (aria-hidden) — number with k/M abbreviation
+- **Abbreviations:** Numeric division, one decimal ("1.2 k", "2 M"), never string-sliced
+- **Metadata:** Nickname (text-sm, zinc-100, medium) + "·" + relative date in Portuguese ("agora mesmo" / "min atrás" / "h atrás" / "d atrás", falling back to pt-BR date) in text-zinc-400 text-sm
 
 ### Loading States
 
-- **Page loading:** Centered CircleNotch icon (100px), black, animate-spin, on the current background
+- **Page loading:** Centered CircleNotch icon (100px), text-zinc-500 (visible on both the slate feed and near-white form pages), animate-spin, on the current background
 - **Submit loading:** Full-screen overlay (bg-white/75), centered CircleNotch icon (80px), z-50
 
 ### Chips / Tags / Hover Card
@@ -309,16 +316,17 @@ The dominant corner radius is `rounded-md` (6px). This applies to cards, buttons
 
 ### Do:
 
-- **Do use shadow-md as the minimum card elevation.** Cards must feel lifted from the slate surface.
+- **Do define dark cards by their hairline border** (`border border-white/10`, brightening on hover) — never by shadows, which vanish on slate.
 - **Do reserve color for functional meaning.** Green = resolved, Purple = open, Blue = action, Orange = register, Red = danger.
 - **Do use the underline-scale animation for navigation links** — it's the system's signature micro-interaction.
-- **Do keep content cards white on the slate-800 feed background** for maximum figure-ground clarity.
+- **Do keep content cards on the slate scale** (slate-900 on the slate-800 surface) so the dark feed reads as one surface.
 - **Do use brightness-90 for button hover states** — it's the consistent, predictable feedback pattern.
 
 ### Don't:
 
 - **Don't add shadows to buttons.** Button state is communicated through background color and brightness, not elevation.
+- **Don't place white cards on the dark feed or post page** — white is reserved for modals and the light auth surfaces.
 - **Don't use rounded corners larger than 8px** — the system is defined by subtle (rounded-md) curvature.
 - **Don't mix input styles.** All text inputs use the underline (border-b-2) pattern — no bordered boxes.
 - **Don't introduce a secondary font family** — Inter serves all roles via weight and size contrast.
-- **Don't place accent colors on backgrounds** — the slate feed + white card pattern is the invariant surface relationship.
+- **Don't place accent colors on backgrounds** — the slate feed + slate-900 card pattern is the invariant surface relationship.

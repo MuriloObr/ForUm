@@ -125,7 +125,7 @@ describe('App', () => {
 
     renderApp()
 
-    expect(screen.getByText('No posts to see...')).toBeInTheDocument()
+    expect(screen.getByText('Nenhum post ainda')).toBeInTheDocument()
   })
 
   it('refreshes the feed when a new post is created', async () => {

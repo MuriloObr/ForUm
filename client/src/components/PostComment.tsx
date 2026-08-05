@@ -30,7 +30,7 @@ function Root({ children, isMain = false }: PostCommentProps['root']) {
   return (
     <div
       className={
-        'w-5/6 mx-auto my-8 p-5 bg-white rounded-md relative' +
+        'w-5/6 mx-auto my-8 p-5 bg-slate-900 rounded-md border border-white/10 text-zinc-200 relative' +
         (isMain ? ' mb-10' : ' flex items-center gap-5')
       }
     >
@@ -80,7 +80,7 @@ function Header({
           size={32}
           className={
             'border-transparent border rounded-md hover:border-zinc-500/70 transition-all cursor-pointer' +
-            (liked ? ' text-rose-500' : '')
+            (liked ? ' text-rose-400' : '')
           }
           onClick={async () => {
             try {
@@ -121,12 +121,12 @@ function Header({
           <span
             className={
               'h-fit flex items-center gap-2 p-2 rounded-md text-white font-bold' +
-              ` ${isClosed ? 'bg-emerald-500' : 'bg-purple-600'}`
+              ` ${isClosed ? 'bg-emerald-700' : 'bg-purple-600'}`
             }
           >
             {isClosed
-              ? ['Closed', <X size={18} weight="bold" key={'iconX'} />]
-              : ['Open', <Check size={18} weight="bold" key={'iconOpen'} />]}
+              ? ['Fechado', <X size={18} weight="bold" key={'iconX'} />]
+              : ['Aberto', <Check size={18} weight="bold" key={'iconOpen'} />]}
           </span>
         </>
       ) : (

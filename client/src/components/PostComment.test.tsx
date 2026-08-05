@@ -86,7 +86,7 @@ describe('PostComment Header', () => {
       liked: true,
     })
 
-    expect(caretAt(0).getAttribute('class')).toContain('text-rose-500')
+    expect(caretAt(0).getAttribute('class')).toContain('text-rose-400')
   })
 
   it('likes the main post and refreshes the post', async () => {

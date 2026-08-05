@@ -29,7 +29,7 @@ export function App() {
 
   const queryClient = useQueryClient()
 
-  const { search } = useContext(SearchContext)
+  const { search, setSearch } = useContext(SearchContext)
 
   const modalRef = useRef<HTMLDialogElement>(null)
   const inputTitleRef = useRef<HTMLInputElement>(null)
@@ -64,6 +64,8 @@ export function App() {
         )
       : []
 
+  const previewContent = (content: string) => content.replace(/^#+\s?/gm, '')
+
   if (dataLoading) {
     return <Loading />
   }
@@ -75,33 +77,56 @@ export function App() {
     <main className="w-full p-5 bg-slate-800 flex-1">
       <div className="h-fit flex flex-col gap-5">
         {search.length > 0 ? (
-          filteredPosts?.map(
-            ({
-              id,
-              title,
-              content,
-              user,
-              is_closed,
-              created_at,
-              view_count,
-              like_count,
-            }) => {
-              return (
-                <Post.Root username={user.username} postID={id} key={id}>
-                  <Post.Header closed={is_closed}>{title}</Post.Header>
-                  <Post.Content>{content}</Post.Content>
-                  <Post.Footer
-                    views={view_count}
-                    likes={like_count}
-                    createdAt={created_at}
-                    nickname={user.nickname}
-                  />
-                </Post.Root>
-              )
-            },
+          filteredPosts && filteredPosts.length > 0 ? (
+            filteredPosts.map(
+              ({
+                id,
+                title,
+                content,
+                user,
+                is_closed,
+                created_at,
+                view_count,
+                like_count,
+              }) => {
+                return (
+                  <Post.Root username={user.username} postID={id} key={id}>
+                    <Post.Header closed={is_closed}>{title}</Post.Header>
+                    <Post.Content>{previewContent(content)}</Post.Content>
+                    <Post.Footer
+                      views={view_count}
+                      likes={like_count}
+                      createdAt={created_at}
+                      nickname={user.nickname}
+                    />
+                  </Post.Root>
+                )
+              },
+            )
+          ) : (
+            <div
+              role="status"
+              className="mx-auto w-3/4 rounded-md border border-white/10 bg-slate-900 p-8 text-center"
+            >
+              <p className="text-lg font-bold text-zinc-100">
+                Nenhum resultado para &ldquo;{search}&rdquo;
+              </p>
+              <button
+                type="button"
+                onClick={() => setSearch('')}
+                className="mt-4 font-bold text-blue-400 underline underline-offset-4 transition-colors duration-150 hover:text-blue-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400"
+              >
+                Limpar busca
+              </button>
+            </div>
           )
         ) : data === undefined || data.length === 0 ? (
-          <div>No posts to see...</div>
+          <div className="mx-auto w-3/4 rounded-md border border-white/10 bg-slate-900 p-8 text-center">
+            <p className="text-lg font-bold text-zinc-100">Nenhum post ainda</p>
+            <p className="mt-2 text-zinc-400">
+              Seja a primeira pessoa a começar uma conversa.
+            </p>
+          </div>
         ) : (
           data.map(
             ({
@@ -117,7 +142,7 @@ export function App() {
               return (
                 <Post.Root username={user.username} postID={id} key={id}>
                   <Post.Header closed={is_closed}>{title}</Post.Header>
-                  <Post.Content>{content.replaceAll('#', '')}</Post.Content>
+                  <Post.Content>{previewContent(content)}</Post.Content>
                   <Post.Footer
                     views={view_count}
                     likes={like_count}

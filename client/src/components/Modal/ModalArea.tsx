@@ -63,7 +63,9 @@ export const ModalArea = forwardRef<HTMLTextAreaElement, AddModalProps['area']>(
                 aria-pressed={!isPreview}
                 onClick={switchToRaw}
                 className={`relative z-10 rounded-md px-4 py-1.5 transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 ${
-                  isPreview ? 'text-zinc-500 hover:text-zinc-700' : 'text-blue-700'
+                  isPreview
+                    ? 'text-zinc-500 hover:text-zinc-700'
+                    : 'text-blue-700'
                 }`}
               >
                 Raw
@@ -73,7 +75,9 @@ export const ModalArea = forwardRef<HTMLTextAreaElement, AddModalProps['area']>(
                 aria-pressed={isPreview}
                 onClick={switchToPreview}
                 className={`relative z-10 rounded-md px-4 py-1.5 transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 ${
-                  isPreview ? 'text-blue-700' : 'text-zinc-500 hover:text-zinc-700'
+                  isPreview
+                    ? 'text-blue-700'
+                    : 'text-zinc-500 hover:text-zinc-700'
                 }`}
               >
                 Preview
