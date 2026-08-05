@@ -163,16 +163,6 @@ export function PostPage() {
           ''
         ) : (
           <>
-            {isOwner ? (
-              <ConfigButton
-                id={post.id}
-                closed={post.is_closed}
-                name={post.title}
-                userID={profile?.id}
-              />
-            ) : (
-              ''
-            )}
             <PostComment.Root isMain={true} key={post.id}>
               <PostComment.Header
                 id={post.id}
@@ -183,7 +173,17 @@ export function PostPage() {
                 isClosed={post.is_closed}
                 isMain={true}
               />
-              <PostComment.Content>{postHtml}</PostComment.Content>
+              {isOwner ? (
+                <ConfigButton
+                  id={post.id}
+                  closed={post.is_closed}
+                  name={post.title}
+                  userID={profile?.id}
+                />
+              ) : (
+                ''
+              )}
+              <PostComment.Content>{postHtml}</PostComment.Content>{' '}
               <PostComment.Footer
                 nickname={post.user.nickname}
                 createdAt={post.created_at}

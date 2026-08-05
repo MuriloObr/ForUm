@@ -110,6 +110,23 @@ describe('ConfigButton', () => {
     expect(screen.getByText('profile marker')).toBeInTheDocument()
   })
 
+  it('shows the owner actions inline without opening a menu', () => {
+    renderConfig()
+
+    expect(screen.getByRole('button', { name: /fechar/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /melhor resposta/i }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /excluir/i })).toBeInTheDocument()
+  })
+
+  it('reflects the closed state on the reopen toggle', () => {
+    renderConfig({ closed: true })
+
+    const toggle = screen.getByRole('button', { name: /reabrir/i })
+    expect(toggle).toHaveAttribute('aria-pressed', 'true')
+  })
+
   it('refreshes the post after closing or reopening it', async () => {
     vi.mocked(togglePostClosed).mockResolvedValue(samplePost)
 
@@ -121,9 +138,7 @@ describe('ConfigButton', () => {
     await waitFor(() => expect(queryFn).toHaveBeenCalledTimes(1))
     await waitForIdle(queryClient, getGetPostQueryKey(7))
 
-    fireEvent.click(screen.getByRole('button'))
-    await waitFor(() => screen.getByText('Mark as Closed'))
-    fireEvent.click(screen.getByText('Mark as Closed'))
+    fireEvent.click(screen.getByRole('button', { name: /fechar/i }))
 
     await waitFor(() =>
       expect(togglePostClosed).toHaveBeenCalledWith({

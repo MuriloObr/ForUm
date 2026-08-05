@@ -244,9 +244,8 @@ The dominant corner radius is `rounded-md` (6px). This applies to cards, buttons
 - **AddButton:** The shared compose/submit button. Two tones via a `tone` prop: **action** (Action Blue #1d4ed8, blue-700) for compose/submit, **danger** (Danger Red #dc2626, red-600) for destructive confirms. White text, font-bold, text-lg, padding py-2 px-4, rounded-md. Two roles via a `position` prop: **fab** (floating, `sticky bottom-8 ml-auto`) and **inline** (in-flow; modal submits right-align via `ml-auto` at the call site).
 - **Login:** Background Action Blue (#1d4ed8), white text, font-bold. Rounded left in a pair (rounded-l-lg) with 2px black border.
 - **Register:** Background Register Orange (#f97316), white text, font-bold. Rounded right in a pair (rounded-r-lg) with 2px black border.
-- **Danger (Delete):** Background Danger Red (#dc2626), white text, hover:brightness-90. Used in config popover.
-- **Config (Close/Open):** Filled rounded-md button, background matches status (Success Green for closed, Open Purple for open), hover:brightness-90.
-- **Config (Answer toggle):** Background slate-800 (active) or slate-600 (inactive), rounded-md.
+- **Danger (Delete):** Background Danger Red (#dc2626), white text, hover:brightness-90. Owner post action, opens the type-to-confirm delete modal.
+- **Config (Owner actions):** Inline right-aligned row on the owner's post page card, between the header and the content, separated by a hairline divider (`border-t border-white/10`). Buttons are filled rounded-md with icon + PT-BR label, `hover:brightness-90`. **Close/Open:** fill matches the status badge — Success Green (emerald-700) when closed, Open Purple (purple-600) when open; label Fechar/Reabrir. **Answer toggle:** background emerald-600 (active) or slate-600 (inactive); label "Melhor resposta". Both toggles expose their state via `aria-pressed`.
 - **Ghost (Form submit):** No background, uses the underline-scale animation (after/before pseudo-elements on the parent button).
 - **State change:** All colored buttons use `hover:brightness-90` for hover feedback — no shadow, no scale, just a consistent lightness shift. Disabled buttons render at 50% opacity with pointer events off. Focus uses a 2px offset outline: `outline-slate-900` on light surfaces, `outline-zinc-400` on the slate feed.
 
