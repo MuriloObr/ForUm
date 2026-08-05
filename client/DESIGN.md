@@ -118,7 +118,7 @@ The palette follows a "Neutral Canvas, Colorful Content" philosophy. Backgrounds
 
 ### Secondary
 
-- **Background Form** (#fafafa): The page-level background for login/register/about/profile pages. Near-white with a hint of warmth.
+- **Background Form** (#fafafa): The page-level background for login/register/about pages. Near-white with a hint of warmth. Profile and the error pages are dark like the feed.
 - **Text Primary** (#18181b / zinc-900): Body text, headings, and labels on light surfaces (auth forms, modals).
 - **Text On Card** (#e4e4e7 / zinc-200): Body text on slate-900 cards (titles zinc-100, secondary zinc-400).
 - **Text Muted** (#a1a1aa / zinc-400): Secondary text like dates and metadata on dark surfaces.

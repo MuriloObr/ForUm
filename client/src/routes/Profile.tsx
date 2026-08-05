@@ -47,7 +47,7 @@ export function Profile() {
   }
 
   return (
-    <main>
+    <main className="w-full bg-slate-800 flex-1">
       {user === undefined ? (
         ''
       ) : (
@@ -84,7 +84,7 @@ export function Profile() {
             </UserComponent.Content>
           </UserComponent.Root>
           <button
-            className="w-fit p-5 flex items-center gap-2 text-3xl font-bold text-black mx-auto"
+            className="w-fit p-5 flex items-center gap-2 text-3xl font-bold text-zinc-100 mx-auto"
             onClick={() => logout()}
           >
             Logout
