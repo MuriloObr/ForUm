@@ -17,14 +17,17 @@ export type AddModalProps = {
     message: string
     tone?: 'action' | 'danger'
     disabled?: boolean
+    onClose?: () => void
   }
   field: {
     type: string
     label: string
+    onChange?: (value: string) => void
   }
   area: {
     label: string
-    withMD?: true
+    withMD?: boolean
+    onChange?: (value: string) => void
   }
 }
 

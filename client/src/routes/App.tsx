@@ -36,6 +36,8 @@ export function App() {
   const inputTextareaRef = useRef<HTMLTextAreaElement>(null)
 
   const [postMessage, setPostMessage] = useState<string>('')
+  const [titleValue, setTitleValue] = useState('')
+  const [contentValue, setContentValue] = useState('')
 
   const { mutate, isLoading: mutateLoading } = useCreatePost({
     mutation: {
@@ -48,6 +50,8 @@ export function App() {
       onError: (error) => {
         if (error.response?.status === 401) {
           setPostMessage('Você precisa estar logado para postar!')
+        } else {
+          setPostMessage('Não foi possível postar. Tente novamente.')
         }
       },
     },
@@ -69,7 +73,7 @@ export function App() {
 
   return (
     <main className="w-full p-5 bg-slate-800 flex-1">
-      <ul className="h-fit flex flex-col gap-5">
+      <div className="h-fit flex flex-col gap-5">
         {search.length > 0 ? (
           filteredPosts?.map(
             ({
@@ -128,13 +132,21 @@ export function App() {
         <AddButton
           text="+ Postar"
           position="fab"
-          onClick={() => modalRef.current?.showModal()}
+          onClick={() => {
+            setPostMessage('')
+            modalRef.current?.showModal()
+          }}
         />
         <Modal.Root
           ref={modalRef}
           message={postMessage}
           submitLabel="Postar"
-          disabled={mutateLoading}
+          disabled={
+            mutateLoading ||
+            titleValue.trim() === '' ||
+            contentValue.trim() === ''
+          }
+          onClose={() => setPostMessage('')}
           onSubmit={() =>
             mutate({
               data: {
@@ -144,11 +156,21 @@ export function App() {
             })
           }
         >
-          <Modal.Field label="Titulo" type="text" ref={inputTitleRef} />
-          <Modal.Area label="Conteúdo" withMD ref={inputTextareaRef} />
+          <Modal.Field
+            label="Título"
+            type="text"
+            ref={inputTitleRef}
+            onChange={setTitleValue}
+          />
+          <Modal.Area
+            label="Conteúdo"
+            withMD
+            ref={inputTextareaRef}
+            onChange={setContentValue}
+          />
           <LoadingSubmit isLoading={mutateLoading} />
         </Modal.Root>
-      </ul>
+      </div>
     </main>
   )
 }

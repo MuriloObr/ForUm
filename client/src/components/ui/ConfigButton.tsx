@@ -23,6 +23,7 @@ export function ConfigButton({ id, closed, name, userID }: ConfigProps) {
   const modalRef = useRef<HTMLDialogElement>(null)
   const modalFieldRef = useRef<HTMLInputElement>(null)
   const [statusMessage, setStatusMessage] = useState('')
+  const [popoverOpen, setPopoverOpen] = useState(false)
 
   const { mutate, isLoading: mutateLoading } = useDeletePost({
     mutation: {
@@ -61,65 +62,71 @@ export function ConfigButton({ id, closed, name, userID }: ConfigProps) {
   }
 
   return (
-    <Popover.Root>
-      <Popover.Trigger className="w-fit ml-auto border rounded-md p-2">
-        <GearSix className="text-white" />
-      </Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Content className="relative w-fit mt-2 flex flex-col gap-2 pt-2 pb-4 px-3 bg-white border rounded-md text-white">
-          <h2 className="mx-auto text-black opacity-80">Options</h2>
-          {
+    <>
+      <Popover.Root open={popoverOpen} onOpenChange={setPopoverOpen}>
+        <Popover.Trigger className="w-fit ml-auto border rounded-md p-2">
+          <GearSix className="text-white" />
+        </Popover.Trigger>
+        <Popover.Portal>
+          <Popover.Content className="relative w-fit mt-2 flex flex-col gap-2 pt-2 pb-4 px-3 bg-white border rounded-md text-white">
+            <h2 className="mx-auto text-black opacity-80">Options</h2>
+            {
+              <button
+                className={
+                  'p-1 hover:brightness-90 rounded-md' +
+                  (closed ? ' bg-emerald-500' : ' bg-purple-600')
+                }
+                onClick={() => toggleClosed()}
+              >
+                Mark as {closed ? 'Opened' : 'Closed'}
+              </button>
+            }
             <button
               className={
-                'p-1 hover:brightness-90 rounded-md' +
-                (closed ? ' bg-emerald-500' : ' bg-purple-600')
+                'hover:brightness-90 rounded-md p-1' +
+                (answerMode ? ' bg-slate-800' : ' bg-slate-600')
               }
-              onClick={() => toggleClosed()}
+              onClick={() => toggleAnswerMode()}
             >
-              Mark as {closed ? 'Opened' : 'Closed'}
+              Choose Best Answer
             </button>
+            <button
+              className="bg-red-600 hover:brightness-90 rounded-md p-1"
+              onClick={() => {
+                setPopoverOpen(false)
+                modalRef.current?.showModal()
+              }}
+            >
+              Delete Post
+            </button>
+            <Popover.Close className="absolute right-2 top-2 p-1 rounded-full hover:bg-black/30">
+              <X className="text-black" />
+            </Popover.Close>
+          </Popover.Content>
+        </Popover.Portal>
+      </Popover.Root>
+      <Modal.Root
+        ref={modalRef}
+        message={statusMessage}
+        submitLabel="Deletar"
+        tone="danger"
+        disabled={mutateLoading}
+        onClose={() => setStatusMessage('')}
+        onSubmit={() => {
+          if (modalFieldRef.current?.value !== name) {
+            setStatusMessage('Campo preenchido incorretamente')
+            return
           }
-          <button
-            className={
-              'hover:brightness-90 rounded-md p-1' +
-              (answerMode ? ' bg-slate-800' : ' bg-slate-600')
-            }
-            onClick={() => toggleAnswerMode()}
-          >
-            Choose Best Answer
-          </button>
-          <button
-            className="bg-red-600 hover:brightness-90 rounded-md p-1"
-            onClick={() => modalRef.current?.showModal()}
-          >
-            Delete Post
-          </button>
-          <Modal.Root
-            ref={modalRef}
-            message={statusMessage}
-            onSubmit={() => {
-              if (modalFieldRef.current?.value !== name) {
-                setStatusMessage('Campo preenchido incorretamente')
-                return
-              }
-              mutate({ postID: id })
-            }}
-            submitLabel="Deletar"
-            tone="danger"
-            disabled={mutateLoading}
-          >
-            <Modal.Field
-              ref={modalFieldRef}
-              type="text"
-              label={`Digite "${name}" para confirmar a deleção`}
-            />
-            <LoadingSubmit isLoading={mutateLoading} />
-          </Modal.Root>
-          <Popover.Close className="absolute right-2 top-2 p-1 rounded-full hover:bg-black/30">
-            <X className="text-black" />
-          </Popover.Close>
-        </Popover.Content>
-      </Popover.Portal>
-    </Popover.Root>
+          mutate({ postID: id })
+        }}
+      >
+        <Modal.Field
+          ref={modalFieldRef}
+          type="text"
+          label={`Digite "${name}" para confirmar a deleção`}
+        />
+        <LoadingSubmit isLoading={mutateLoading} />
+      </Modal.Root>
+    </>
   )
 }

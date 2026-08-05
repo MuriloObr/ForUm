@@ -101,6 +101,7 @@ export function PostPage() {
   const inputTextareaRef = useRef<HTMLTextAreaElement>(null)
 
   const [commentMessage, setCommentMessage] = useState<string>('')
+  const [contentValue, setContentValue] = useState('')
 
   const { mutate, isLoading: mutateLoading } = useCreateComment({
     mutation: {
@@ -113,6 +114,8 @@ export function PostPage() {
       onError: (error) => {
         if (error.response?.status === 401) {
           setCommentMessage('Você precisa estar logado para comentar!')
+        } else {
+          setCommentMessage('Não foi possível comentar. Tente novamente.')
         }
       },
     },
@@ -142,7 +145,7 @@ export function PostPage() {
 
   return (
     <main className="w-full p-5 bg-slate-800 text-zinc-900 flex-1 relative">
-      <ul className="h-fit flex flex-col">
+      <div className="h-fit flex flex-col">
         {post === undefined ? (
           ''
         ) : (
@@ -220,13 +223,17 @@ export function PostPage() {
         <AddButton
           text="+ Comentar"
           position="fab"
-          onClick={() => modalRef.current?.showModal()}
+          onClick={() => {
+            setCommentMessage('')
+            modalRef.current?.showModal()
+          }}
         />
         <Modal.Root
           ref={modalRef}
           message={commentMessage}
           submitLabel="Comentar"
-          disabled={mutateLoading}
+          disabled={mutateLoading || contentValue.trim() === ''}
+          onClose={() => setCommentMessage('')}
           onSubmit={() =>
             mutate({
               data: {
@@ -236,10 +243,15 @@ export function PostPage() {
             })
           }
         >
-          <Modal.Area withMD label="Conteudo" ref={inputTextareaRef} />
+          <Modal.Area
+            withMD
+            label="Conteúdo"
+            ref={inputTextareaRef}
+            onChange={setContentValue}
+          />
           <LoadingSubmit isLoading={mutateLoading} />
         </Modal.Root>
-      </ul>
+      </div>
     </main>
   )
 }

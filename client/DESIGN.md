@@ -180,7 +180,7 @@ ForUm uses a single-column content layout centered on the viewport. The feed is 
 **Container sizing:**
 - Post cards: `w-3/4 mx-auto`
 - Post page cards: `w-5/6 mx-auto`
-- Modals: `w-1/3`
+- Modals: `w-full max-w-xl` (576px cap)
 - Forms: `w-1/5`
 - Profile content: `w-1/6`
 - Full viewport height uses `h-screen-d` (100dvh custom Tailwind extension)
@@ -257,9 +257,9 @@ The dominant corner radius is `rounded-md` (6px). This applies to cards, buttons
 
 - **Style:** Underline-only — `border-b-2 border-black`, transparent background, no box or radius
 - **Text Style:** font-normal, text-2xl, leading-10 (forms) or leading-8 (modals)
-- **Focus:** Standard browser outline suppressed (`outline-none`) — focus is implicit via the underline
+- **Focus:** Browser outline suppressed (`outline-none`) with the underline shifting to Action Blue (`focus:border-blue-700`) as the visible focus indicator
 - **Label:** Text-2xl (modal) or tracking-wide (form), followed by ↴ arrow character
-- **Textarea (ModalArea):** Same underline pattern, 10 rows tall, with raw/preview toggle
+- **Textarea (ModalArea):** Same underline pattern, 10 rows tall, with a quiet two-button Raw/Preview switch — neutral zinc track (`bg-zinc-200/80`), white sliding indicator, active label in Action Blue (`text-blue-700`), Label-size text (text-sm font-medium), `aria-pressed` on both buttons
 
 ### Navigation (Header)
 
@@ -272,12 +272,14 @@ The dominant corner radius is `rounded-md` (6px). This applies to cards, buttons
 
 ### Modal
 
-- **Trigger:** Native `<dialog>` element
-- **Container:** w-1/3, rounded-md, white background
+- **Trigger:** Native `<dialog>` element opened via `showModal()`
+- **Container:** `w-full max-w-xl` (576px cap), rounded-md, white background
 - **Backdrop:** `backdrop:bg-slate-900/80` — dims the feed surface
-- **Internal layout:** Flex column, gap-5, padding p-8
-- **Result message:** h-5, text-red-700, appears above the submit button
-- **Close:** Modal closes on successful submission via ref
+- **Internal layout:** Flex column, gap-5, padding p-8, `max-h-[85dvh]` with `overflow-y-auto`; the panel is `relative` so the loading overlay can paint inside it
+- **Result message:** h-5, text-red-700, appears above the action row; `onClose` clears it on dismiss
+- **Close:** X button (top-right), Cancel button, backdrop click, and Esc all close via `ref.close()`; the `onClose` callback lets callers reset state. Successful submissions close via ref from the caller.
+- **Submit row:** Right-aligned flex — ghost Cancel + AddButton submit (action or danger tone)
+- **Loading:** The LoadingSubmit overlay renders inside the dialog panel (absolute inset-0), never as a fixed sibling behind the top-layer dialog
 
 ### Status Badges
 

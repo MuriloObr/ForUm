@@ -1,67 +1,89 @@
-import { forwardRef, useRef, useState } from 'react'
+import { forwardRef, useEffect, useRef, useState } from 'react'
 import { AddModalProps } from '@mytypes/typesComponents'
 import { markdownPurifiedStr } from '../../utils/MDpurifiedHelper'
 import { highlight } from '../../utils/highlighter'
 
-export const ModalArea = forwardRef<HTMLTextAreaElement, AddModalProps['area']>(
-  function Area({ label, withMD }, ref) {
-    const [viewClasses, setViewClasses] = useState({
-      editor: 'block',
-      preview: 'hidden',
-    })
-    const [previewHtml, setPreviewHtml] = useState(
-      'Escreva seu texto para ver a preview aqui, se precisar saber sobre markdown entre [aqui](https://github.com/luong-komorebi/Markdown-Tutorial)',
-    )
-    const previewDivRef = useRef<HTMLDivElement>(null)
+const PREVIEW_HINT =
+  'Escreva seu texto para ver a preview aqui, se precisar saber sobre markdown entre [aqui](https://github.com/luong-komorebi/Markdown-Tutorial)'
 
-    async function renderPreview() {
-      const purifiedHtml = await markdownPurifiedStr(previewHtml)
-      setPreviewHtml(purifiedHtml)
+export const ModalArea = forwardRef<HTMLTextAreaElement, AddModalProps['area']>(
+  function Area({ label, withMD, onChange }, ref) {
+    const [view, setView] = useState<'raw' | 'preview'>('raw')
+    const [markdown, setMarkdown] = useState('')
+    const [previewHtml, setPreviewHtml] = useState(PREVIEW_HINT)
+    const previewDivRef = useRef<HTMLDivElement>(null)
+    const isPreview = view === 'preview'
+
+    useEffect(() => {
+      if (isPreview && previewDivRef.current) highlight(previewDivRef.current)
+    }, [isPreview, previewHtml])
+
+    async function switchToPreview() {
+      const source = markdown.trim()
+      const html = source ? await markdownPurifiedStr(source) : PREVIEW_HINT
+      setPreviewHtml(html)
+      setView('preview')
+    }
+
+    function switchToRaw() {
+      setView('raw')
     }
 
     return (
-      <label className="flex flex-col text-black text-2xl">
-        {label}↴
-        <textarea
-          ref={ref}
-          rows={10}
-          onChange={(ev) => {
-            if (!withMD) return
-            setPreviewHtml(ev.target.value)
-          }}
-          className={`w-full px-2 bg-transparent border-b-2 border-black text-2xl leading-8 font-normal outline-none ${viewClasses.editor}`}
-        />
+      <div className="flex flex-col gap-2 text-black text-2xl">
+        <label className="flex flex-col">
+          {label}↴
+          <textarea
+            ref={ref}
+            rows={10}
+            onChange={(ev) => {
+              onChange?.(ev.target.value)
+              setMarkdown(ev.target.value)
+            }}
+            className={`w-full px-2 bg-transparent border-b-2 border-black text-2xl leading-8 font-normal outline-none focus:border-blue-700 transition-colors duration-150 ${isPreview ? 'hidden' : 'block'}`}
+          />
+        </label>
         {withMD ? (
           <>
-            <pre className="font-[inherit]">
-              <div
-                ref={previewDivRef}
-                className={`markdown ${viewClasses.preview}`}
-                dangerouslySetInnerHTML={{ __html: previewHtml }}
-              />
-            </pre>
-            <div className="text-lg rounded bg-slate-800/60 text-white w-fit p-2 flex gap-2 font-bold mt-2">
-              <button
-                onClick={(ev) => {
-                  renderPreview()
-                  highlight()
-                  if (viewClasses.preview === 'hidden') {
-                    setViewClasses({ editor: 'hidden', preview: 'block' })
-                    ev.currentTarget.textContent = 'View'
-                  } else {
-                    setViewClasses({ editor: 'block', preview: 'hidden' })
-                    ev.currentTarget.textContent = 'Raw'
-                  }
+            <div
+              ref={previewDivRef}
+              className={`markdown whitespace-normal break-words ${isPreview ? 'block' : 'hidden'}`}
+              dangerouslySetInnerHTML={{ __html: previewHtml }}
+            />
+            <div className="relative grid w-fit grid-cols-2 rounded-md bg-zinc-200/80 p-1 text-sm font-medium">
+              <span
+                aria-hidden
+                className="pointer-events-none absolute left-1 top-1 h-[calc(100%-8px)] w-[calc(50%-4px)] rounded-md bg-white transition-transform duration-200 ease-out"
+                style={{
+                  transform: isPreview ? 'translateX(100%)' : 'translateX(0)',
                 }}
+              />
+              <button
+                type="button"
+                aria-pressed={!isPreview}
+                onClick={switchToRaw}
+                className={`relative z-10 rounded-md px-4 py-1.5 transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 ${
+                  isPreview ? 'text-zinc-500 hover:text-zinc-700' : 'text-blue-700'
+                }`}
               >
                 Raw
+              </button>
+              <button
+                type="button"
+                aria-pressed={isPreview}
+                onClick={switchToPreview}
+                className={`relative z-10 rounded-md px-4 py-1.5 transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 ${
+                  isPreview ? 'text-blue-700' : 'text-zinc-500 hover:text-zinc-700'
+                }`}
+              >
+                Preview
               </button>
             </div>
           </>
         ) : (
           ''
         )}
-      </label>
+      </div>
     )
   },
 )
