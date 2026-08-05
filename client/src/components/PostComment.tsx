@@ -8,10 +8,13 @@ import {
   CheckFat,
 } from '@phosphor-icons/react'
 import {
-  likePostApiPostsLikePost,
-  likeCommentApiCommentsLikePost,
-  unlikePostApiPostsLikeDelete,
-  unlikeCommentApiCommentsLikeDelete,
+  likePost,
+  likeComment,
+  unlikePost,
+  unlikeComment,
+  getGetPostQueryKey,
+  getGetPostCommentsQueryKey,
+  getGetPostsQueryKey,
 } from '../api/generated/endpoints'
 import { useQueryClient } from '@tanstack/react-query'
 import { PostCommentProps } from '../types/typesComponents'
@@ -27,7 +30,7 @@ function Root({ children, isMain = false }: PostCommentProps['root']) {
   return (
     <div
       className={
-        'w-5/6 mx-auto my-8 p-5 bg-white rounded-md relative' +
+        'w-5/6 mx-auto my-8 p-5 bg-slate-900 rounded-md border border-white/10 text-zinc-200 relative' +
         (isMain ? ' mb-10' : ' flex items-center gap-5')
       }
     >
@@ -48,25 +51,46 @@ function Header({
   id,
   title,
   likes = 0,
+  liked = false,
   isClosed,
   isMain = false,
+  postId,
 }: PostCommentProps['header']) {
   const queryClient = useQueryClient()
+
+  function refreshPostLikes() {
+    queryClient.invalidateQueries({
+      queryKey: getGetPostQueryKey(postId),
+    })
+    queryClient.invalidateQueries({
+      queryKey: getGetPostsQueryKey(),
+    })
+  }
+
+  function refreshCommentLikes() {
+    queryClient.invalidateQueries({
+      queryKey: getGetPostCommentsQueryKey(postId),
+    })
+  }
 
   return (
     <div className="flex justify-between items-center gap-5">
       <span className="flex flex-col items-center">
         <CaretUp
           size={32}
-          className="border-transparent border rounded-md hover:border-zinc-500/70 transition-all cursor-pointer"
+          className={
+            'border-transparent border rounded-md hover:border-zinc-500/70 transition-all cursor-pointer' +
+            (liked ? ' text-rose-400' : '')
+          }
           onClick={async () => {
             try {
               if (isMain) {
-                await likePostApiPostsLikePost({ post_id: id })
+                await likePost({ post_id: postId })
+                refreshPostLikes()
               } else {
-                await likeCommentApiCommentsLikePost({ comment_id: id })
+                await likeComment({ comment_id: id })
+                refreshCommentLikes()
               }
-              queryClient.invalidateQueries({ queryKey: ['post'] })
             } catch {
               // error handled silently
             }
@@ -79,11 +103,12 @@ function Header({
           onClick={async () => {
             try {
               if (isMain) {
-                await unlikePostApiPostsLikeDelete({ post_id: id })
+                await unlikePost({ post_id: postId })
+                refreshPostLikes()
               } else {
-                await unlikeCommentApiCommentsLikeDelete({ comment_id: id })
+                await unlikeComment({ comment_id: id })
+                refreshCommentLikes()
               }
-              queryClient.invalidateQueries({ queryKey: ['post'] })
             } catch {
               // error handled silently
             }
@@ -96,12 +121,12 @@ function Header({
           <span
             className={
               'h-fit flex items-center gap-2 p-2 rounded-md text-white font-bold' +
-              ` ${isClosed ? 'bg-emerald-500' : 'bg-purple-600'}`
+              ` ${isClosed ? 'bg-emerald-700' : 'bg-purple-600'}`
             }
           >
             {isClosed
-              ? ['Closed', <X size={18} weight="bold" key={'iconX'} />]
-              : ['Open', <Check size={18} weight="bold" key={'iconOpen'} />]}
+              ? ['Fechado', <X size={18} weight="bold" key={'iconX'} />]
+              : ['Aberto', <Check size={18} weight="bold" key={'iconOpen'} />]}
           </span>
         </>
       ) : (

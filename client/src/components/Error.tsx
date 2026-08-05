@@ -132,30 +132,30 @@ export function Error({ error, onRetry, context = 'inline' }: ErrorProps) {
       ? 'bg-blue-700'
       : action.onRetry !== undefined
         ? 'bg-emerald-700'
-        : 'bg-slate-900'
+        : 'bg-white/10'
 
   return (
     <main className="flex w-full flex-1 items-center justify-center bg-slate-800 p-5">
       <div
         role="alert"
-        className="flex w-full max-w-md flex-col items-center gap-4 rounded-md bg-white p-5 text-center shadow-md shadow-slate-950"
+        className="flex w-full max-w-md flex-col items-center gap-4 rounded-md border border-white/10 bg-slate-900 p-5 text-center"
       >
         <HeadingTag
           ref={headingRef}
           tabIndex={context === 'route' ? -1 : undefined}
-          className={`font-bold text-zinc-900 ${
+          className={`font-bold text-zinc-100 ${
             context === 'route' ? 'text-2xl' : 'text-xl'
           }`}
         >
           {heading}
         </HeadingTag>
 
-        <p className="text-base text-zinc-700">{body}</p>
+        <p className="text-base text-zinc-400">{body}</p>
 
         {action.to !== undefined ? (
           <Link
             to={action.to}
-            className={`rounded-md px-4 py-2 font-bold text-white transition-all duration-150 hover:brightness-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 ${actionButtonClass}`}
+            className={`rounded-md px-4 py-2 font-bold text-white transition-all duration-150 hover:brightness-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 ${actionButtonClass}`}
           >
             {action.label}
           </Link>
@@ -163,7 +163,7 @@ export function Error({ error, onRetry, context = 'inline' }: ErrorProps) {
           <button
             type="button"
             onClick={action.onRetry}
-            className={`rounded-md px-4 py-2 font-bold text-white transition-all duration-150 hover:brightness-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 ${actionButtonClass}`}
+            className={`rounded-md px-4 py-2 font-bold text-white transition-all duration-150 hover:brightness-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 ${actionButtonClass}`}
           >
             {action.label}
           </button>
@@ -172,7 +172,7 @@ export function Error({ error, onRetry, context = 'inline' }: ErrorProps) {
         {action.onRetry !== undefined && (
           <Link
             to="/"
-            className="text-sm text-zinc-500 underline underline-offset-2 transition-colors duration-150 hover:text-zinc-900"
+            className="text-sm text-zinc-400 underline underline-offset-2 transition-colors duration-150 hover:text-white"
           >
             Voltar ao início
           </Link>

@@ -4,6 +4,9 @@ export interface AddButtonProps {
   text: string
   onClick: MouseEventHandler<HTMLButtonElement>
   className?: string
+  tone?: 'action' | 'danger'
+  position?: 'fab' | 'inline'
+  disabled?: boolean
 }
 
 export type AddModalProps = {
@@ -12,14 +15,19 @@ export type AddModalProps = {
     onSubmit: MouseEventHandler
     submitLabel: string
     message: string
+    tone?: 'action' | 'danger'
+    disabled?: boolean
+    onClose?: () => void
   }
   field: {
     type: string
     label: string
+    onChange?: (value: string) => void
   }
   area: {
     label: string
-    withMD?: true
+    withMD?: boolean
+    onChange?: (value: string) => void
   }
 }
 
@@ -27,6 +35,7 @@ export interface ConfigProps {
   id: number
   closed: boolean
   name: string
+  userID?: number
 }
 
 export type MyFormProps = {
@@ -72,8 +81,10 @@ export type PostCommentProps = {
     id: number
     title: string
     likes?: number
+    liked?: boolean
     isClosed: boolean
     isMain?: boolean
+    postId: number
   }
   content: {
     children: string | TrustedHTML

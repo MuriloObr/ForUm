@@ -1,10 +1,12 @@
 import { describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 import { SearchProvider } from '../context/SearchContext'
 import { App } from './App'
+import { getGetPostsQueryKey } from '../api/generated/endpoints'
+import { QueryProbe, waitForIdle } from '../test/queryProbe'
 import type { PostResponse } from '../api/generated/model/postResponse'
 
 const mocks = vi.hoisted(() => ({
@@ -14,15 +16,20 @@ const mocks = vi.hoisted(() => ({
     data: undefined as PostResponse[] | undefined,
     error: undefined as unknown,
   },
+  onCreatePost: undefined as (() => void) | undefined,
 }))
 
-vi.mock('../api/generated/endpoints', () => ({
-  useGetAllPostsApiPostsGet: () => mocks.posts,
-  useCreateNewPostApiPostsCreatePost: () => ({
-    mutate: vi.fn(),
-    isLoading: false,
-  }),
-}))
+vi.mock('../api/generated/endpoints', async (importOriginal) => {
+  const actual = (await importOriginal()) as Record<string, unknown>
+  return {
+    ...actual,
+    useGetPosts: () => mocks.posts,
+    useCreatePost: ({ mutation }: { mutation: { onSuccess: () => void } }) => {
+      mocks.onCreatePost = mutation.onSuccess
+      return { mutate: vi.fn(), isLoading: false }
+    },
+  }
+})
 
 function makeAxiosError(status?: number): AxiosError {
   const response = status
@@ -61,6 +68,9 @@ const samplePost: PostResponse = {
     created_at: '2026-08-02T00:00:00Z',
     updated_at: '2026-08-02T00:00:00Z',
   },
+  like_count: 0,
+  view_count: 0,
+  is_liked: false,
 }
 
 function renderApp() {
@@ -91,6 +101,35 @@ describe('App', () => {
     expect(screen.getByText('First post here')).toBeInTheDocument()
   })
 
+  it('shows real view and like counts on post cards', () => {
+    mocks.posts = {
+      isLoading: false,
+      isError: false,
+      data: [{ ...samplePost, view_count: 250, like_count: 10 }],
+      error: undefined,
+    }
+
+    renderApp()
+
+    expect(screen.getByText('250')).toBeInTheDocument()
+    expect(screen.getByText('10')).toBeInTheDocument()
+  })
+
+  it('renders skeleton loaders while the feed loads', () => {
+    mocks.posts = {
+      isLoading: true,
+      isError: false,
+      data: undefined,
+      error: undefined,
+    }
+
+    renderApp()
+
+    expect(
+      screen.getByRole('status', { name: 'Carregando posts...' }),
+    ).toBeInTheDocument()
+  })
+
   it('renders the empty fallback when there are no posts', () => {
     mocks.posts = {
       isLoading: false,
@@ -101,7 +140,40 @@ describe('App', () => {
 
     renderApp()
 
-    expect(screen.getByText('No posts to see...')).toBeInTheDocument()
+    expect(screen.getByText('Nenhum post ainda')).toBeInTheDocument()
+  })
+
+  it('refreshes the feed when a new post is created', async () => {
+    mocks.posts = {
+      isLoading: false,
+      isError: false,
+      data: [samplePost],
+      error: undefined,
+    }
+
+    const feedQueryFn = vi.fn().mockReturnValue('feed')
+
+    const queryClient = new QueryClient()
+    render(
+      <MemoryRouter>
+        <QueryClientProvider client={queryClient}>
+          <SearchProvider>
+            <App />
+            <QueryProbe
+              queryKey={getGetPostsQueryKey()}
+              queryFn={feedQueryFn}
+            />
+          </SearchProvider>
+        </QueryClientProvider>
+      </MemoryRouter>,
+    )
+
+    await waitForIdle(queryClient, getGetPostsQueryKey())
+    expect(feedQueryFn).toHaveBeenCalledTimes(1)
+
+    mocks.onCreatePost?.()
+
+    await waitFor(() => expect(feedQueryFn).toHaveBeenCalledTimes(2))
   })
 
   it('renders the error fallback when the request fails', () => {

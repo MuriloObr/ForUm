@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { AxiosError } from 'axios'
 import { useNavigate } from 'react-router-dom'
-import { useCreateNewUserApiRegisterPost } from '../api/generated/endpoints'
+import { useRegister } from '../api/generated/endpoints'
 import { Form } from '../components/Form'
 import { LoadingSubmit } from '../components/LoadingSubmit'
 
@@ -16,7 +16,7 @@ export function Register() {
     colorClass: 'white',
   })
 
-  const { mutate, isLoading } = useCreateNewUserApiRegisterPost({
+  const { mutate, isLoading } = useRegister({
     mutation: {
       onSuccess: () => navigate('/login'),
       onError: (error) => {

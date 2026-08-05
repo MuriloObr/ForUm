@@ -1,18 +1,21 @@
 import { useParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { PostComment } from '../components/PostComment'
-import { Loading } from '../components/Loading'
+import { CommentSkeleton } from '../components/Skeletons'
 import { Error } from '../components/Error'
 import { AddButton } from '../components/ui/AddButton'
 import { Modal } from '../components/Modal'
 import { useContext, useEffect, useRef, useState } from 'react'
 import {
-  useGetPostByIDApiPostsPostIDGet,
-  useGetAllCommentsFromPostApiCommentsPostIDGet,
-  useProfileApiProfileGet,
-  useCreateNewCommentApiPostsCommentPost,
-  useViewPostApiPostsViewPost,
-  bestCommentApiCommentsBestPut,
+  useGetPost,
+  useGetPostComments,
+  useGetLoggedUser,
+  useCreateComment,
+  useViewPost,
+  chooseBestComment,
+  getGetPostQueryKey,
+  getGetPostCommentsQueryKey,
+  getGetPostsQueryKey,
 } from '../api/generated/endpoints'
 import { ArrowFatLinesRight } from '@phosphor-icons/react'
 import { ConfigButton } from '../components/ui/ConfigButton'
@@ -30,23 +33,20 @@ export function PostPage() {
     data: post,
     error,
     refetch,
-  } = useGetPostByIDApiPostsPostIDGet(postId, {
+  } = useGetPost(postId, {
     query: {
       staleTime: 15 * 60 * 1000,
     },
   })
 
-  const { data: comments } = useGetAllCommentsFromPostApiCommentsPostIDGet(
-    postId,
-    {
-      query: {
-        enabled: !!post,
-        retry: false,
-      },
+  const { data: comments } = useGetPostComments(postId, {
+    query: {
+      enabled: !!post,
+      retry: false,
     },
-  )
+  })
 
-  const { data: profile } = useProfileApiProfileGet()
+  const { data: profile } = useGetLoggedUser()
 
   const [isOwner, setIsOwner] = useState<boolean>(false)
   const { answerMode, toggleAnswerMode } = useContext(AnswerContext)
@@ -56,9 +56,13 @@ export function PostPage() {
   const [postHtml, setPostHtml] = useState<string>('')
   const [commentHtmlList, setCommentHtmlList] = useState<string[]>([])
 
-  const { mutate: viewPost } = useViewPostApiPostsViewPost({
+  const { mutate: viewPost } = useViewPost({
     mutation: {
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: ['posts'] }),
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: getGetPostsQueryKey(),
+        })
+      },
     },
   })
 
@@ -97,37 +101,56 @@ export function PostPage() {
   const inputTextareaRef = useRef<HTMLTextAreaElement>(null)
 
   const [commentMessage, setCommentMessage] = useState<string>('')
+  const [contentValue, setContentValue] = useState('')
 
-  const { mutate, isLoading: mutateLoading } =
-    useCreateNewCommentApiPostsCommentPost({
-      mutation: {
-        onSuccess: () => {
-          modalRef.current?.close()
-          queryClient.invalidateQueries({ queryKey: ['post'] })
-        },
-        onError: (error) => {
-          if (error.response?.status === 401) {
-            setCommentMessage('Você precisa estar logado para comentar!')
-          }
-        },
+  const { mutate, isLoading: mutateLoading } = useCreateComment({
+    mutation: {
+      onSuccess: () => {
+        modalRef.current?.close()
+        queryClient.invalidateQueries({
+          queryKey: getGetPostCommentsQueryKey(postId),
+        })
       },
-    })
+      onError: (error) => {
+        if (error.response?.status === 401) {
+          setCommentMessage('Você precisa estar logado para comentar!')
+        } else {
+          setCommentMessage('Não foi possível comentar. Tente novamente.')
+        }
+      },
+    },
+  })
 
   async function markAsBestAnswer(id: number) {
     try {
-      await bestCommentApiCommentsBestPut({
+      await chooseBestComment({
         comment_id: id,
         post_id: postId,
       })
       toggleAnswerMode()
-      queryClient.invalidateQueries({ queryKey: ['post'] })
+      queryClient.invalidateQueries({
+        queryKey: getGetPostQueryKey(postId),
+      })
     } catch {
       // error handled silently
     }
   }
 
   if (isLoading) {
-    return <Loading />
+    return (
+      <main className="w-full p-5 bg-slate-800 flex-1">
+        <div
+          role="status"
+          aria-label="Carregando post..."
+          className="h-fit flex flex-col"
+        >
+          <CommentSkeleton isMain />
+          {Array.from({ length: 3 }).map((_, index) => (
+            <CommentSkeleton key={index} />
+          ))}
+        </div>
+      </main>
+    )
   }
   if (isError) {
     return <Error error={error} onRetry={refetch} />
@@ -135,28 +158,32 @@ export function PostPage() {
 
   return (
     <main className="w-full p-5 bg-slate-800 text-zinc-900 flex-1 relative">
-      <ul className="h-fit flex flex-col">
+      <div className="h-fit flex flex-col">
         {post === undefined ? (
           ''
         ) : (
           <>
-            {isOwner ? (
-              <ConfigButton
-                id={post.id}
-                closed={post.is_closed}
-                name={post.title}
-              />
-            ) : (
-              ''
-            )}
             <PostComment.Root isMain={true} key={post.id}>
               <PostComment.Header
                 id={post.id}
+                postId={postId}
                 title={post.title}
+                likes={post.like_count}
+                liked={post.is_liked}
                 isClosed={post.is_closed}
                 isMain={true}
               />
-              <PostComment.Content>{postHtml}</PostComment.Content>
+              {isOwner ? (
+                <ConfigButton
+                  id={post.id}
+                  closed={post.is_closed}
+                  name={post.title}
+                  userID={profile?.id}
+                />
+              ) : (
+                ''
+              )}
+              <PostComment.Content>{postHtml}</PostComment.Content>{' '}
               <PostComment.Footer
                 nickname={post.user.nickname}
                 createdAt={post.created_at}
@@ -184,7 +211,10 @@ export function PostPage() {
                       )}
                       <PostComment.Header
                         id={comment.id}
+                        postId={postId}
                         title="comentario"
+                        likes={comment.like_count}
+                        liked={comment.is_liked}
                         isClosed={false}
                         isMain={false}
                       />
@@ -204,14 +234,19 @@ export function PostPage() {
           </>
         )}
         <AddButton
-          text="+ Comment"
-          className="right-0 mr-10"
-          onClick={() => modalRef.current?.showModal()}
+          text="+ Comentar"
+          position="fab"
+          onClick={() => {
+            setCommentMessage('')
+            modalRef.current?.showModal()
+          }}
         />
         <Modal.Root
           ref={modalRef}
           message={commentMessage}
           submitLabel="Comentar"
+          disabled={mutateLoading || contentValue.trim() === ''}
+          onClose={() => setCommentMessage('')}
           onSubmit={() =>
             mutate({
               data: {
@@ -221,10 +256,15 @@ export function PostPage() {
             })
           }
         >
-          <Modal.Area withMD label="Conteudo" ref={inputTextareaRef} />
+          <Modal.Area
+            withMD
+            label="Conteúdo"
+            ref={inputTextareaRef}
+            onChange={setContentValue}
+          />
           <LoadingSubmit isLoading={mutateLoading} />
         </Modal.Root>
-      </ul>
+      </div>
     </main>
   )
 }

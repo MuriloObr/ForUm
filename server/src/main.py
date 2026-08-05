@@ -55,17 +55,17 @@ def optional_token_validation(uid: Union[str, None] = Cookie(None)) -> Union[UID
         return None
 
 
-@app.get("/api/logged", response_model=UserResponse)
+@app.get("/api/logged", response_model=UserResponse, operation_id="getLoggedUser")
 async def logged(uid_token: Annotated[UIDToken, Depends(token_validation)]):
     return get_user_by_id(uid_token.user_id)[0]
 
 
-@app.get("/api/user/{userID}", response_model=UserResponse)
+@app.get("/api/user/{userID}", response_model=UserResponse, operation_id="getUser")
 async def getUserByID(userID: int):
     return get_user_by_id(userID)[0]
 
 
-@app.get("/api/posts/{postID}", response_model=PostResponse)
+@app.get("/api/posts/{postID}", response_model=PostResponse, operation_id="getPost")
 async def getPostByID(
     postID: int,
     uid_token: Annotated[Union[UIDToken, None], Depends(optional_token_validation)],
@@ -74,7 +74,7 @@ async def getPostByID(
     return get_post_by_id(postID, currentUser=viewer)[0]
 
 
-@app.get("/api/posts", response_model=list[PostResponse])
+@app.get("/api/posts", response_model=list[PostResponse], operation_id="getPosts")
 def getAllPosts(
     uid_token: Annotated[Union[UIDToken, None], Depends(optional_token_validation)],
 ):
@@ -82,7 +82,7 @@ def getAllPosts(
     return get_all_posts(currentUser=viewer)[0]
 
 
-@app.get("/api/posts/user/{userID}", response_model=list[PostResponse])
+@app.get("/api/posts/user/{userID}", response_model=list[PostResponse], operation_id="getUserPosts")
 def getAllPostsFromUser(
     userID: int,
     uid_token: Annotated[Union[UIDToken, None], Depends(optional_token_validation)],
@@ -91,7 +91,7 @@ def getAllPostsFromUser(
     return get_all_posts_from_user(userID, currentUser=viewer)[0]
 
 
-@app.get("/api/comments/{postID}", response_model=list[CommentResponse])
+@app.get("/api/comments/{postID}", response_model=list[CommentResponse], operation_id="getPostComments")
 def getAllCommentsFromPost(
     postID: int,
     uid_token: Annotated[Union[UIDToken, None], Depends(optional_token_validation)],
@@ -100,47 +100,47 @@ def getAllCommentsFromPost(
     return get_all_comments_from_post(postID, currentUser=viewer)[0]
 
 
-@app.post("/api/posts/create", response_model=PostResponse, status_code=status.HTTP_201_CREATED)
+@app.post("/api/posts/create", response_model=PostResponse, status_code=status.HTTP_201_CREATED, operation_id="createPost")
 def createNewPost(uid_token: Annotated[UIDToken, Depends(token_validation)], new_post: NewPost):
     return create_new_post(post=new_post, currentUser=uid_token.user_id)[0]
 
 
-@app.delete("/api/posts/delete/{postID}")
+@app.delete("/api/posts/delete/{postID}", operation_id="deletePost")
 def deletePost(uid_token: Annotated[UIDToken, Depends(token_validation)], postID: int):
     delete_post(post_id=postID, currentUser=uid_token.user_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@app.post("/api/posts/comment", response_model=CommentResponse, status_code=status.HTTP_201_CREATED)
+@app.post("/api/posts/comment", response_model=CommentResponse, status_code=status.HTTP_201_CREATED, operation_id="createComment")
 def createNewComment(uid_token: Annotated[UIDToken, Depends(token_validation)], new_comment: NewComment):
     return create_new_comment(comment=new_comment, currentUser=uid_token.user_id)[0]
 
 
-@app.post("/api/posts/like")
+@app.post("/api/posts/like", operation_id="likePost")
 def likePost(uid_token: Annotated[UIDToken, Depends(token_validation)], post_ref: PostRef):
     like_post(post_id=post_ref.post_id, currentUser=uid_token.user_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@app.delete("/api/posts/like")
+@app.delete("/api/posts/like", operation_id="unlikePost")
 def unlikePost(uid_token: Annotated[UIDToken, Depends(token_validation)], post_ref: PostRef):
     rm_like_post(post_id=post_ref.post_id, currentUser=uid_token.user_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@app.post("/api/comments/like")
+@app.post("/api/comments/like", operation_id="likeComment")
 def likeComment(uid_token: Annotated[UIDToken, Depends(token_validation)], comment_ref: CommentRef):
     like_comment(comment_id=comment_ref.comment_id, currentUser=uid_token.user_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@app.delete("/api/comments/like")
+@app.delete("/api/comments/like", operation_id="unlikeComment")
 def unlikeComment(uid_token: Annotated[UIDToken, Depends(token_validation)], comment_ref: CommentRef):
     rm_like_comment(comment_id=comment_ref.comment_id, currentUser=uid_token.user_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@app.put("/api/comments/best", response_model=PostResponse)
+@app.put("/api/comments/best", response_model=PostResponse, operation_id="chooseBestComment")
 def bestComment(uid_token: Annotated[UIDToken, Depends(token_validation)], best_comment_ref: BestCommentRef):
     return choose_answer(
         post_id=best_comment_ref.post_id,
@@ -149,37 +149,37 @@ def bestComment(uid_token: Annotated[UIDToken, Depends(token_validation)], best_
     )[0]
 
 
-@app.post("/api/posts/view")
+@app.post("/api/posts/view", operation_id="viewPost")
 def viewPost(uid_token: Annotated[UIDToken, Depends(token_validation)], post_ref: PostRef):
     view_post(post_id=post_ref.post_id, currentUser=uid_token.user_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@app.put("/api/posts/closed", response_model=PostResponse)
+@app.put("/api/posts/closed", response_model=PostResponse, operation_id="togglePostClosed")
 def closeOpenPost(uid_token: Annotated[UIDToken, Depends(token_validation)], post_ref: PostRef):
     return close_or_open_post(post_id=post_ref.post_id, currentUser=uid_token.user_id)[0]
 
 
-@app.post("/api/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@app.post("/api/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED, operation_id="register")
 def createNewUser(new_user: NewUser):
     task = create_new_user(new_user)
     return task[0]
 
 
-@app.post("/api/login", status_code=204)
+@app.post("/api/login", status_code=204, operation_id="login")
 def login(user: UserPayload, response: Response):
     token = login_with_user_or_email(user.user, user.password)
     response.set_cookie(key="uid", value=token, samesite="lax")
 
 
-@app.post("/api/logout", status_code=204)
+@app.post("/api/logout", status_code=204, operation_id="logout")
 def logout(uid_token: Annotated[UIDToken, Depends(token_validation)], response: Response):
     response.set_cookie(key="uid", expires=0)
 
 
 # --- SPA fallback (must be last) ---
 
-@app.get("/{path:path}")
+@app.get("/{path:path}", include_in_schema=False)
 async def serve_spa(path: str):
     if path.startswith("api"):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")

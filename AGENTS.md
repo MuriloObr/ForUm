@@ -76,7 +76,6 @@ Uses SQLite in-memory via `tests/conftest.py`; no Postgres required.
 - Axios for HTTP
 - Radix UI (hover-card, popover), Phosphor Icons
 - Markdown: `marked` + `dompurify` + `highlight.js`
-- Storybook 8 (React-Vite)
 - Orval for API code generation from OpenAPI spec
 
 ### Commands (in `client/`)
@@ -87,7 +86,6 @@ pnpm build            # tsc && vite build
 pnpm lint             # eslint --ext ts,tsx (zero warnings allowed)
 pnpm test             # vitest (jsdom), colocated *.test.tsx
 pnpm generate         # Generate API types and hooks from openapi.json
-pnpm storybook        # Storybook on port 6006
 ```
 
 ### Path aliases

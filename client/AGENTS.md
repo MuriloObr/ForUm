@@ -14,7 +14,6 @@ ForUm client — a React SPA forum frontend. Single package (not a monorepo). Ba
 - Radix UI (hover-card, popover), Phosphor Icons
 - Markdown rendering: `marked` + `dompurify` + `highlight.js`
 - Testing: Vitest + @testing-library/react (jsdom)
-- Storybook 8 (React-Vite)
 - Orval for API code generation from OpenAPI spec
 
 ## Commands
@@ -27,8 +26,6 @@ pnpm test             # vitest run (component tests, jsdom)
 pnpm test:watch       # vitest watch mode
 pnpm generate         # Generate API types and hooks from openapi.json
 pnpm generate:watch   # Watch mode for generation
-pnpm storybook        # Storybook on port 6006
-pnpm build-storybook
 ```
 
 Tests live colocated as `*.test.tsx` next to the source files. Vitest is
@@ -94,4 +91,3 @@ Production build is served by FastAPI as static files. Vite builds to `dist/`, F
 - TypeScript strict mode enabled (`noUnusedLocals`, `noUnusedParameters`)
 - Tailwind for all styling; custom CSS in `src/index.css` for markdown rendering
 - Markdown rendered in a `.markdown` class with Tailwind `@apply` directives
-- Storybook stories colocated with components (`*.stories.tsx`)

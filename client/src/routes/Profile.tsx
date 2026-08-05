@@ -1,10 +1,10 @@
 import {
-  useProfileApiProfileGet,
-  useGetAllPostsFromUserApiPostsUserUserIDGet,
-  useLogoutApiLogoutPost,
+  useGetLoggedUser,
+  useGetUserPosts,
+  useLogout,
 } from '../api/generated/endpoints'
 import { UserComponent } from '../components/UserComponent'
-import { Loading } from '../components/Loading'
+import { PostSkeleton } from '../components/Skeletons'
 import { Error } from '../components/Error'
 import { SignOut } from '@phosphor-icons/react'
 import { Post } from '../components/Post'
@@ -17,32 +17,41 @@ export function Profile() {
     data: user,
     error,
     refetch,
-  } = useProfileApiProfileGet({
+  } = useGetLoggedUser({
     query: {
       retry: 1,
       refetchOnWindowFocus: false,
     },
   })
 
-  const { data: posts } = useGetAllPostsFromUserApiPostsUserUserIDGet(
-    user?.id ?? 0,
-    {
-      query: {
-        enabled: user?.id !== undefined,
-      },
+  const { data: posts } = useGetUserPosts(user?.id ?? 0, {
+    query: {
+      enabled: user?.id !== undefined,
     },
-  )
+  })
 
   const navigate = useNavigate()
 
-  const { mutate: logout } = useLogoutApiLogoutPost({
+  const { mutate: logout } = useLogout({
     mutation: {
       onSuccess: () => navigate('/'),
     },
   })
 
   if (isLoading) {
-    return <Loading />
+    return (
+      <main className="w-full bg-slate-800 flex-1">
+        <div
+          role="status"
+          aria-label="Carregando perfil..."
+          className="p-8 flex flex-col items-center gap-5"
+        >
+          {Array.from({ length: 3 }).map((_, index) => (
+            <PostSkeleton key={index} />
+          ))}
+        </div>
+      </main>
+    )
   }
 
   if (isError) {
@@ -50,7 +59,7 @@ export function Profile() {
   }
 
   return (
-    <main>
+    <main className="w-full bg-slate-800 flex-1">
       {user === undefined ? (
         ''
       ) : (
@@ -76,6 +85,8 @@ export function Profile() {
                         </Post.Header>
                         <Post.Content>{post.content}</Post.Content>
                         <Post.Footer
+                          views={post.view_count}
+                          likes={post.like_count}
                           createdAt={post.created_at}
                           nickname={post.user.nickname}
                         />
@@ -85,7 +96,7 @@ export function Profile() {
             </UserComponent.Content>
           </UserComponent.Root>
           <button
-            className="w-fit p-5 flex items-center gap-2 text-3xl font-bold text-black mx-auto"
+            className="w-fit p-5 flex items-center gap-2 text-3xl font-bold text-zinc-100 mx-auto"
             onClick={() => logout()}
           >
             Logout
